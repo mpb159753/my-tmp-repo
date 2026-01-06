@@ -1,0 +1,106 @@
+{
+  "version": "3.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "anchor_rect_short",
+      "score": null,
+      "points": [
+        [
+          24.93138313293457,
+          173.65512084960938
+        ],
+        [
+          502.9775390625,
+          169.58404541015625
+        ],
+        [
+          502.20965576171875,
+          29.64694595336914
+        ],
+        [
+          30.066431045532227,
+          30.30634117126465
+        ],
+        [
+          25.36430549621582,
+          41.126583099365234
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_triangle",
+      "score": null,
+      "points": [
+        [
+          500.4192810058594,
+          234.62550354003906
+        ],
+        [
+          328.02783203125,
+          396.5056457519531
+        ],
+        [
+          323.3824462890625,
+          420.7209167480469
+        ],
+        [
+          499.42926025390625,
+          580.9647827148438
+        ],
+        [
+          506.1700134277344,
+          575.009033203125
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "score_2_square",
+      "score": null,
+      "points": [
+        [
+          24.32769775390625,
+          544.732177734375
+        ],
+        [
+          277.0605773925781,
+          540.2974243164062
+        ],
+        [
+          282.0368347167969,
+          793.6214599609375
+        ],
+        [
+          26.240407943725586,
+          797.475830078125
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    }
+  ],
+  "imagePath": "blue_2_card_05.png",
+  "imageData": null,
+  "imageHeight": 820,
+  "imageWidth": 527,
+  "description": ""
+}

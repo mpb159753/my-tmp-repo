@@ -1,0 +1,102 @@
+{
+  "version": "3.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "score_2_square",
+      "score": null,
+      "points": [
+        [
+          37.16204833984375,
+          523.5079345703125
+        ],
+        [
+          285.83062744140625,
+          530.439697265625
+        ],
+        [
+          275.7059631347656,
+          769.5242309570312
+        ],
+        [
+          22.651832580566406,
+          762.7354736328125
+        ],
+        [
+          26.97208595275879,
+          537.8229370117188
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_triangle",
+      "score": null,
+      "points": [
+        [
+          339.8287353515625,
+          398.6047668457031
+        ],
+        [
+          510.5770568847656,
+          580.211669921875
+        ],
+        [
+          514.96044921875,
+          239.2039337158203
+        ],
+        [
+          498.47747802734375,
+          240.85012817382812
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_rect_short",
+      "score": null,
+      "points": [
+        [
+          35.317134857177734,
+          162.5078887939453
+        ],
+        [
+          518.376953125,
+          174.08843994140625
+        ],
+        [
+          515.6421508789062,
+          31.899559020996094
+        ],
+        [
+          34.09822082519531,
+          25.02130699157715
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    }
+  ],
+  "imagePath": "red_1_card_00.png",
+  "imageData": null,
+  "imageHeight": 801,
+  "imageWidth": 535,
+  "description": ""
+}

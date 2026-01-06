@@ -1,0 +1,102 @@
+{
+  "version": "3.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "score_2_square",
+      "score": null,
+      "points": [
+        [
+          31.39064598083496,
+          545.3282470703125
+        ],
+        [
+          273.6721496582031,
+          539.83056640625
+        ],
+        [
+          281.2945861816406,
+          790.5696411132812
+        ],
+        [
+          27.99769401550293,
+          798.5267333984375
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "score_4_rect_long",
+      "score": null,
+      "points": [
+        [
+          369.76025390625,
+          789.5018920898438
+        ],
+        [
+          510.7878723144531,
+          787.6513061523438
+        ],
+        [
+          495.361328125,
+          31.37417984008789
+        ],
+        [
+          483.3736877441406,
+          25.22800064086914
+        ],
+        [
+          350.8094177246094,
+          28.123136520385742
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_triangle",
+      "score": null,
+      "points": [
+        [
+          26.059825897216797,
+          266.7620849609375
+        ],
+        [
+          47.74284362792969,
+          266.67730712890625
+        ],
+        [
+          265.968994140625,
+          32.9571533203125
+        ],
+        [
+          28.013656616210938,
+          35.86543655395508
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    }
+  ],
+  "imagePath": "yellow_1_card_05.png",
+  "imageData": null,
+  "imageHeight": 830,
+  "imageWidth": 529,
+  "description": ""
+}

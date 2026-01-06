@@ -1,0 +1,110 @@
+{
+  "version": "3.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "anchor_triangle",
+      "score": null,
+      "points": [
+        [
+          516.1407470703125,
+          588.6552734375
+        ],
+        [
+          497.0350036621094,
+          589.1014404296875
+        ],
+        [
+          343.6722412109375,
+          424.01513671875
+        ],
+        [
+          340.4378662109375,
+          410.23297119140625
+        ],
+        [
+          498.55108642578125,
+          259.9290466308594
+        ],
+        [
+          518.4678344726562,
+          254.28822326660156
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_rect_short",
+      "score": null,
+      "points": [
+        [
+          518.65283203125,
+          668.4041137695312
+        ],
+        [
+          21.42357635498047,
+          657.7946166992188
+        ],
+        [
+          21.843788146972656,
+          801.1464233398438
+        ],
+        [
+          520.4412231445312,
+          809.3453369140625
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "score_2_square",
+      "score": null,
+      "points": [
+        [
+          283.11712646484375,
+          285.2149353027344
+        ],
+        [
+          30.21342658996582,
+          280.7795715332031
+        ],
+        [
+          36.30733108520508,
+          31.437320709228516
+        ],
+        [
+          298.3578796386719,
+          33.38264083862305
+        ],
+        [
+          297.13079833984375,
+          267.5584716796875
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    }
+  ],
+  "imagePath": "mirror_yellow_1_card_06.png",
+  "imageData": null,
+  "imageHeight": 836,
+  "imageWidth": 549,
+  "description": ""
+}

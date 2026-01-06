@@ -1,0 +1,158 @@
+import os
+import random
+import cv2
+import logging
+from data_utils import load_all_cards
+from engine import SynthesisEngine
+from renderer import Renderer
+
+# Default Configuration
+CONFIG = {
+    "OUTPUT_DIR": "./synthesis_data/dataset",
+    "TOTAL_IMAGES": 5000,
+    "MIN_CARDS": 5,
+    "MAX_CARDS": 10,
+    "COLLISION": {
+        "PARENT_OVERLAP_MAX": 0.30,
+        "NON_PARENT_OVERLAP_MAX": 0.005,
+        "PRESERVE_PARENT_ANCHORS": True
+    },
+    "VISIBILITY_THRESHOLD": 0.5, # 严格阈值
+    
+    # 概率分布配置 (Probabilities)
+    "LIGHTING_DIST": {
+        0: 0.30, # Minimal/Clean
+        1: 0.30, # Weak
+        2: 0.25, # Medium
+        3: 0.15  # Strong
+    },
+    "PERSPECTIVE_DIST": {
+        "NONE": 0.20,
+        "NORMAL": 0.50, # 10-15%
+        "HEAVY": 0.30   # 20-35%
+    },
+    
+    # 调试选项
+    "DEBUG": {
+        "SAVE_IMAGES": True, # 输出 debug 图片
+        "SAVE_LOGS": True    # 输出生成日志
+    },
+    
+    "CANDIDATE_PATH": None, # 默认使用 global loading，可指定特定目录
+    
+    # YOLO 类别映射
+    "CLASS_MAP": {
+        1: 0,  # Triangle
+        2: 1,  # Square
+        3: 2,  # Rect Short
+        4: 3   # Rect Long
+    }
+}
+
+def main(user_config=None):
+    # Merge user config with default
+    config = CONFIG.copy()
+    if user_config:
+        config.update(user_config)
+        # Deep merge for nested dicts if needed, currently shallow update for top level
+        # For simplicity, if user passes nested dicts, they overwrite entirely or we do manual check
+        if "COLLISION" in user_config: config["COLLISION"] = user_config["COLLISION"]
+        if "LIGHTING_DIST" in user_config: config["LIGHTING_DIST"] = user_config["LIGHTING_DIST"]
+        if "PERSPECTIVE_DIST" in user_config: config["PERSPECTIVE_DIST"] = user_config["PERSPECTIVE_DIST"]
+        if "DEBUG" in user_config: config["DEBUG"] = user_config["DEBUG"]
+
+    # Determine default assets path relative to this script
+    if not config.get("CANDIDATE_PATH"):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        # Assuming folder structure: synthesis_data/main.py -> ../assets2
+        config["CANDIDATE_PATH"] = os.path.join(base_dir, "..", "assets2")
+    
+    assets_dir = config["CANDIDATE_PATH"]
+    output_dir = config["OUTPUT_DIR"]
+    
+    # Ensure absolute path for output
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.abspath(output_dir)
+
+    img_dir = os.path.join(output_dir, "images")
+    lbl_dir = os.path.join(output_dir, "labels")
+    log_dir = os.path.join(output_dir, "logs")
+    debug_dir = os.path.join(output_dir, "debug")
+    
+    os.makedirs(img_dir, exist_ok=True)
+    os.makedirs(lbl_dir, exist_ok=True)
+    if config["DEBUG"]["SAVE_LOGS"]:
+        os.makedirs(log_dir, exist_ok=True)
+    if config["DEBUG"]["SAVE_IMAGES"]:
+        os.makedirs(debug_dir, exist_ok=True)
+    
+    print("Loading cards...")
+    cards = load_all_cards(assets_dir)
+    print(f"Loaded {len(cards)} cards.")
+    
+    # Init Engine with Collision Config
+    engine = SynthesisEngine(
+        cards, 
+        canvas_size=(2048, 2048),
+        collision_config=config["COLLISION"]
+    )
+    
+    # Init Renderer and set distributions
+    renderer = Renderer(canvas_size=(2048, 2048))
+    renderer.set_distributions(
+        lighting_dist=config["LIGHTING_DIST"],
+        perspective_dist=config["PERSPECTIVE_DIST"]
+    )
+    
+    num_images = config["TOTAL_IMAGES"]
+    print(f"Generating {num_images} images with config: {config}")
+    
+    min_c = config["MIN_CARDS"]
+    max_c = config["MAX_CARDS"]
+
+    start_idx = config.get("START_INDEX", 0)
+    for i in range(start_idx, start_idx + num_images):
+        # Generate stacking
+        n_cards = random.randint(min_c, max_c)
+        placed_cards = engine.generate(min_cards=n_cards)
+        
+        # Save name
+        base_name = f"synth_{i:04d}"
+        img_path = os.path.join(img_dir, f"{base_name}.jpg")
+        txt_path = os.path.join(lbl_dir, f"{base_name}.txt")
+        
+        # Render and save
+        # 1. Render base with shadows
+        canvas, lighting_level = renderer.render(placed_cards, assets_dir, img_path)
+        
+        # 2. Lighting Augmentation
+        canvas = renderer.augment_lighting(canvas, lighting_level=lighting_level)
+        
+        # 3. Perspective
+        canvas, valid_poly = renderer.apply_perspective(canvas, placed_cards)
+        
+        # Save final image
+        cv2.imwrite(img_path, canvas)
+        
+        # 4. Save labels
+        renderer.save_yolo_labels(placed_cards, txt_path, valid_poly=valid_poly)
+        
+        # Save Debug Data (Only 10% to save space)
+        should_debug = (i % 10 == 0)
+
+        # Logs
+        if config["DEBUG"]["SAVE_LOGS"] and should_debug:
+            log_path = os.path.join(log_dir, f"{base_name}.log")
+            engine.save_logs(log_path)
+        
+        # Debug Images
+        if config["DEBUG"]["SAVE_IMAGES"] and should_debug:
+            debug_path = os.path.join(debug_dir, f"{base_name}_debug.jpg")
+            # Note: We pass canvas (already perspective warped) and the txt path (polygons)
+            renderer.render_debug_v2(canvas, txt_path, debug_path)
+        
+        if (i+1) % 10 == 0:
+            print(f"Done {i+1} (Batch progress)")
+
+if __name__ == "__main__":
+    main()

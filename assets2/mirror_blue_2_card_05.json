@@ -1,0 +1,106 @@
+{
+  "version": "3.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "anchor_rect_short",
+      "score": null,
+      "points": [
+        [
+          501.0686340332031,
+          173.65512084960938
+        ],
+        [
+          23.022478103637695,
+          169.5840606689453
+        ],
+        [
+          23.790363311767578,
+          29.646947860717773
+        ],
+        [
+          495.9336242675781,
+          30.306344985961914
+        ],
+        [
+          500.6357116699219,
+          41.1265869140625
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "anchor_triangle",
+      "score": null,
+      "points": [
+        [
+          25.58075714111328,
+          234.62550354003906
+        ],
+        [
+          197.97222900390625,
+          396.50567626953125
+        ],
+        [
+          202.61758422851562,
+          420.7209167480469
+        ],
+        [
+          26.57075309753418,
+          580.96484375
+        ],
+        [
+          19.830018997192383,
+          575.009033203125
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    },
+    {
+      "label": "score_2_square",
+      "score": null,
+      "points": [
+        [
+          501.67230224609375,
+          544.732177734375
+        ],
+        [
+          248.939453125,
+          540.2974243164062
+        ],
+        [
+          243.9631805419922,
+          793.6214599609375
+        ],
+        [
+          499.7596130371094,
+          797.4758911132812
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "difficult": false,
+      "shape_type": "polygon",
+      "flags": {},
+      "attributes": {},
+      "kie_linking": []
+    }
+  ],
+  "imagePath": "mirror_blue_2_card_05.png",
+  "imageData": null,
+  "imageHeight": 820,
+  "imageWidth": 527,
+  "description": ""
+}
