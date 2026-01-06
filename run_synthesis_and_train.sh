@@ -60,7 +60,7 @@ train_config = {
     "CANDIDATE_PATH": ASSETS_DIR,
     "OUTPUT_DIR": TRAIN_OUTPUT_DIR,
     "TOTAL_IMAGES": ${NUM_TRAIN_IMAGES},
-    "DEBUG": {"SAVE_IMAGES": False, "SAVE_Logs": False} # Disable debug for speed
+    "DEBUG": {"SAVE_IMAGES": False, "SAVE_LOGS": False} # Disable debug for speed
 }
 main(train_config)
 
