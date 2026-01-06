@@ -1,12 +1,11 @@
 # Tacta Board Game Scoring Dataset Configuration
 
-# Path to the dataset root (optional if absolute paths are used in train/val)
-path: /Users/mpb/WorkSpace/local_job/synthesis_data/dataset
+# Path calculated at runtime (txt files contain absolute paths)
+# path: . 
 
-# Train and Validation splits (using text files with absolute paths)
-# Train and Validation splits (using text files with absolute paths)
-train: /Users/mpb/WorkSpace/local_job/train/train_full.txt
-val: /Users/mpb/WorkSpace/local_job/train/val_full.txt
+# Train and Validation splits (relative to this yaml file)
+train: train_full.txt
+val: val_full.txt
 
 # Class names
 names:

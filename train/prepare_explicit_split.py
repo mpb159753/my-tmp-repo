@@ -2,9 +2,14 @@ import os
 import glob
 
 # Config
-TRAIN_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset"
-VAL_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset_val"
-OUTPUT_DIR = "/Users/mpb/WorkSpace/local_job/train"
+# Config
+# Dynamic path calculation based on script location (assumed to be in PROJECT_ROOT/train)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
+TRAIN_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset")
+VAL_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset_val")
+OUTPUT_DIR = BASE_DIR
 
 def get_images(root):
     if not os.path.exists(root):
