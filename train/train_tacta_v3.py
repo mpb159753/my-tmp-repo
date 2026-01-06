@@ -36,6 +36,7 @@ def main(args):
         exist_ok=True,    # Overwrite existing experiment folder if name collides (we use distinct names)
         patience=5,       # Aggressive early stopping (Matched to v2 config)
         save=True,        # Ensure best/last are saved
+        amp=args.amp,     # Mixed Precision Control
     )
     
     # 4. Export
@@ -58,12 +59,16 @@ if __name__ == "__main__":
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
     parser.add_argument("--project", type=str, default="/Users/mpb/WorkSpace/local_job/train/runs", help="Project name")
     parser.add_argument("--name", type=str, default="tacta_m4_v3", help="Experiment name (v3)")
+    parser.add_argument("--amp", type=str, default="True", help="Enable Automatic Mixed Precision (True/False)")
     
     args = parser.parse_args()
     
     # Convert "False"/"True" strings to bool if applicable
     if args.cache == "False": args.cache = False
     elif args.cache == "True": args.cache = True
+    
+    if args.amp == "False": args.amp = False
+    elif args.amp == "True": args.amp = True
     
     # Check if data files exist
     # Check if data files exist
