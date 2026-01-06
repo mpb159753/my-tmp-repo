@@ -2,6 +2,10 @@ import argparse
 from ultralytics import YOLO
 import os
 import yaml
+try:
+    import torch_npu
+except ImportError:
+    pass
 
 def main(args):
     # 1. Load the model
@@ -47,12 +51,12 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train YOLO11-m-seg for Tacta Board Game (v3)")
     parser.add_argument("--model", type=str, default="yolo11m-seg.pt", help="Base model path (Segmentation)")
-    parser.add_argument("--data", type=str, default="/Users/mpb/WorkSpace/local_job/train/tacta.yaml", help="Data config path")
+    parser.add_argument("--data", type=str, default="tacta.yaml", help="Data config path")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs")
     parser.add_argument("--imgsz", type=int, default=1024, help="Image size")
-    parser.add_argument("--batch", type=int, default=4, help="Batch size")
-    parser.add_argument("--device", type=str, default="mps", help="Device (cpu, mps, cuda)") 
-    parser.add_argument("--workers", type=int, default=4, help="Dataloader workers")
+    parser.add_argument("--batch", type=int, default=16, help="Batch size")
+    parser.add_argument("--device", type=str, default="0", help="Device (cpu, mps, cuda, 0, npu:0)") 
+    parser.add_argument("--workers", type=int, default=8, help="Dataloader workers")
     parser.add_argument("--cache", type=str, default="False", help="Cache images (False/ram/disk)")
     parser.add_argument("--save-period", type=int, default=1, help="Save checkpoint every X epochs")
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")

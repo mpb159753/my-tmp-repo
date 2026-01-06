@@ -149,6 +149,7 @@ $LAUNCHER train/train_tacta_v3.py \
     --epochs 100 \
     --batch 16 \
     --imgsz 1024 \
+    --device 0 \
     --workers 8 \
     --cache False \
     --save-period 1 \
