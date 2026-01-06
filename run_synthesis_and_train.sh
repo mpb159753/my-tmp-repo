@@ -37,32 +37,43 @@ echo "[Step 1] Checking Synthetic Data..."
 DATASET_DIR="synthesis_data/dataset"
 VAL_DIR="synthesis_data/dataset_val"
 
-# Check if data exists
-if [ -d "$DATASET_DIR/images" ] && [ "$(ls -A $DATASET_DIR/images)" ] && \
-   [ -d "$VAL_DIR/images" ] && [ "$(ls -A $VAL_DIR/images)" ]; then
-    DATA_EXISTS=true
-else
-    DATA_EXISTS=false
+# Check Training Data
+SKIP_TRAIN=false
+if [ -d "$DATASET_DIR/images" ] && [ "$(ls -A $DATASET_DIR/images)" ]; then
+    SKIP_TRAIN=true
 fi
 
-if [ "$DATA_EXISTS" = true ] && [ "$FORCE_SYNTH" = false ]; then
-    echo "Files found in '$DATASET_DIR' and '$VAL_DIR'. Skipping synthesis."
-    echo "Use --force-synth to overwrite."
-else
-    if [ "$DATA_EXISTS" = true ]; then
-        echo "Data exists but --force-synth specified. Regenerating..."
-    else
-        echo "Data missing. Generating..."
-    fi
-    echo "Generating Synthetic Data..."
+# Check Validation Data
+SKIP_VAL=false
+if [ -d "$VAL_DIR/images" ] && [ "$(ls -A $VAL_DIR/images)" ]; then
+    SKIP_VAL=true
+fi
 
-# Set Candidates Path via Env Var or modify config dynamically? 
-# The main.py uses CANDIDATE_PATH or defaults to abs path. 
-# We should update main.py or pass config.
-# Ideally, we pass it via python or ensure main.py logic is portable.
-# I checked main.py, it defaults to "/Users/mpb/WorkSpace/local_job/assets2". 
-# The exported main.py needs to be updated or we need to pass a config.
-# Let's create a temporary python runner to inject the relative assets path.
+# Force Override
+if [ "$FORCE_SYNTH" = true ]; then
+    SKIP_TRAIN=false
+    SKIP_VAL=false
+fi
+
+# Feedback
+if [ "$SKIP_TRAIN" = true ]; then
+    echo "-> Training data exists. Skipping."
+else
+    echo "-> Training data missing (or forced). Queued for generation."
+fi
+
+if [ "$SKIP_VAL" = true ]; then
+    echo "-> Validation data exists. Skipping."
+else
+    echo "-> Validation data missing (or forced). Queued for generation."
+fi
+
+if [ "$SKIP_TRAIN" = true ] && [ "$SKIP_VAL" = true ]; then
+    echo "All data exists. Skipping synthesis step."
+else
+    echo "Running Synthesis Logic..."
+    export SKIP_TRAIN=$SKIP_TRAIN
+    export SKIP_VAL=$SKIP_VAL
 
 cat <<EOF > run_synthesis.py
 import os
@@ -78,34 +89,35 @@ sys.path.append(os.path.join(BASE_DIR, "synthesis_data"))
 sys.path.append(BASE_DIR)
 
 try:
-    # Importing main directly since synthesis_data is in path
     from main import main
-    # Importing generate_val directly
     from generate_val import generate_validation_set
 except ImportError:
-    # Fallback/Alternative depending on how checking path resolves
     from synthesis_data.main import main
     from synthesis_data.generate_val import generate_validation_set
 
+# Read Env Vars (Bash sets them as strings 'true'/'false')
+skip_train = os.environ.get("SKIP_TRAIN", "false") == "true"
+skip_val = os.environ.get("SKIP_VAL", "false") == "true"
+
 # 1. Generate Train
-print(f"Generating Training Data from {ASSETS_DIR}...")
-train_config = {
-    "CANDIDATE_PATH": ASSETS_DIR,
-    "OUTPUT_DIR": TRAIN_OUTPUT_DIR,
-    "TOTAL_IMAGES": ${NUM_TRAIN_IMAGES},
-    "DEBUG": {"SAVE_IMAGES": False, "SAVE_LOGS": False} # Disable debug for speed
-}
-main(train_config)
+if not skip_train:
+    print(f"Generating Training Data from {ASSETS_DIR}...")
+    train_config = {
+        "CANDIDATE_PATH": ASSETS_DIR,
+        "OUTPUT_DIR": TRAIN_OUTPUT_DIR,
+        "TOTAL_IMAGES": ${NUM_TRAIN_IMAGES},
+        "DEBUG": {"SAVE_IMAGES": False, "SAVE_LOGS": False}
+    }
+    main(train_config)
+else:
+    print("Skipping Training Data Generation (already exists)")
 
 # 2. Generate Val
-print("Generating Validation Data...")
-# We need to ensure generate_val uses the correct assets path too.
-# Inspecting generate_val.py: It calls main(cfg). Since we updated main.py (in Step 87)
-# to default to relative ../assets2 if CANDIDATE_PATH matches default, it should work fine
-# as long as we run it from the correct working directory OR main.py logic holds.
-# main.py logic: config["CANDIDATE_PATH"] = os.path.join(base_dir, "..", "assets2")
-# If base_dir is synthesis_data/, .. is export/. assets2 is export/assets2. Correct.
-generate_validation_set()
+if not skip_val:
+    print("Generating Validation Data...")
+    generate_validation_set()
+else:
+    print("Skipping Validation Data Generation (already exists)")
 
 EOF
 
