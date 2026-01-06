@@ -18,7 +18,11 @@ batches = [
         "config": {
             "LIGHTING_DIST": {0: 1.0}, # Minimal
             "PERSPECTIVE_DIST": {"NONE": 1.0},
-            "OUTPUT_DIR": VAL_OUTPUT_DIR
+            "OUTPUT_DIR": VAL_OUTPUT_DIR,
+            "USE_PARALLEL": False,
+            "MIN_CARDS": 40,
+            "MAX_CARDS": 80,
+            "GLOBAL_SCALE": 0.4
         }
     },
     {
@@ -27,7 +31,11 @@ batches = [
         "config": {
             "LIGHTING_DIST": {1: 1.0}, # Weak
             "PERSPECTIVE_DIST": {"NORMAL": 1.0},
-            "OUTPUT_DIR": VAL_OUTPUT_DIR
+            "OUTPUT_DIR": VAL_OUTPUT_DIR,
+            "USE_PARALLEL": False,
+            "MIN_CARDS": 40,
+            "MAX_CARDS": 80,
+            "GLOBAL_SCALE": 0.4
         }
     },
     {
@@ -36,7 +44,11 @@ batches = [
         "config": {
             "LIGHTING_DIST": {2: 1.0}, # Medium
             "PERSPECTIVE_DIST": {"NORMAL": 1.0},
-            "OUTPUT_DIR": VAL_OUTPUT_DIR
+            "OUTPUT_DIR": VAL_OUTPUT_DIR,
+            "USE_PARALLEL": False,
+            "MIN_CARDS": 40,
+            "MAX_CARDS": 80,
+            "GLOBAL_SCALE": 0.4
         }
     },
     {
@@ -45,7 +57,11 @@ batches = [
         "config": {
             "LIGHTING_DIST": {3: 1.0}, # Strong
             "PERSPECTIVE_DIST": {"HEAVY": 1.0},
-            "OUTPUT_DIR": VAL_OUTPUT_DIR
+            "OUTPUT_DIR": VAL_OUTPUT_DIR,
+            "USE_PARALLEL": False,
+            "MIN_CARDS": 40,
+            "MAX_CARDS": 80,
+            "GLOBAL_SCALE": 0.4
         }
     }
 ]
