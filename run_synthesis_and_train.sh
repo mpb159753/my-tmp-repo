@@ -34,13 +34,25 @@ echo "[Step 1] Generating Synthetic Data..."
 cat <<EOF > run_synthesis.py
 import os
 import sys
-from synthesis_data.main import main
-from synthesis_data.generate_val import generate_validation_set
 
 # Calculate relative path to assets
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets2")
 TRAIN_OUTPUT_DIR = os.path.join(BASE_DIR, "synthesis_data", "dataset")
+
+# Add paths for imports
+sys.path.append(os.path.join(BASE_DIR, "synthesis_data"))
+sys.path.append(BASE_DIR)
+
+try:
+    # Importing main directly since synthesis_data is in path
+    from main import main
+    # Importing generate_val directly
+    from generate_val import generate_validation_set
+except ImportError:
+    # Fallback/Alternative depending on how checking path resolves
+    from synthesis_data.main import main
+    from synthesis_data.generate_val import generate_validation_set
 
 # 1. Generate Train
 print(f"Generating Training Data from {ASSETS_DIR}...")
@@ -53,23 +65,19 @@ train_config = {
 main(train_config)
 
 # 2. Generate Val
-# generate_val.py already handles relative paths in my previous edit, but it needs to find assets too.
-# Let's just run it, but we might need to patch it or rely on it finding assets2 if it uses default?
-# Wait, generate_val.py calls main(cfg). main() uses default assets path if not provided.
-# The default in main.py is HARDCODED /Users/mpb/... 
-# So we MUST patch the config passed to main in generate_val.py OR patch main.py itself.
-# Since we are running generate_val.py functions here, let's just monkeypatch or pass config if possible.
-# generate_val.py doesn't accept args easily. 
-# EASIER: We updated main.py in the export to look for assets relative to itself? No we didn't.
-# I should update main.py in the export to use relative paths by default.
+print("Generating Validation Data...")
+# We need to ensure generate_val uses the correct assets path too.
+# Inspecting generate_val.py: It calls main(cfg). Since we updated main.py (in Step 87)
+# to default to relative ../assets2 if CANDIDATE_PATH matches default, it should work fine
+# as long as we run it from the correct working directory OR main.py logic holds.
+# main.py logic: config["CANDIDATE_PATH"] = os.path.join(base_dir, "..", "assets2")
+# If base_dir is synthesis_data/, .. is export/. assets2 is export/assets2. Correct.
+generate_validation_set()
 
 EOF
 
-# Update main.py to be portable FIRST
-# (I will do this in the next tool call, but assuming it's done for this script flow)
-
 echo "Running Synthesis Script..."
-python run_synthesis_runner.py
+python run_synthesis.py
 
 echo ""
 echo "[Step 2] Preparing Split Files..."
