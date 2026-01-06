@@ -7,8 +7,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from synthesis_data.main import main
 
-# Base Output Dir
-VAL_OUTPUT_DIR = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset_val"
+# Base Output Dir - relative to this script
+VAL_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "dataset_val")
 
 # Define batches
 batches = [
