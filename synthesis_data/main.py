@@ -50,8 +50,10 @@ CONFIG = {
 }
 
 import multiprocessing as mp
+import numpy as np
 from tqdm import tqdm
 import time
+import logging
 
 # Global context for worker processes
 worker_ctx = {}
@@ -64,6 +66,11 @@ def init_worker(config, cards, assets_dir, out_dirs):
     seed = (os.getpid() * int(time.time() * 1000)) % 123456789
     random.seed(seed)
     np.random.seed(seed)
+    
+    # Silence detailed logs from engine in console (keep only errors/warnings if any)
+    # The engine writes to self.logs list for file saving, independent of logger.info if we tweak it.
+    # However, engine uses logging.basicConfig. We should adjust the logger for "synthesis_data.engine".
+    logging.getLogger("synthesis_data.engine").setLevel(logging.WARNING)
     
     worker_ctx['config'] = config
     worker_ctx['assets_dir'] = assets_dir

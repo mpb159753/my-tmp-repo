@@ -109,13 +109,14 @@ class SynthesisEngine:
         pc = PlacedCard(first_card, M_final, 0)
         self.placed_cards.append(pc)
         self.active_anchors.extend([(pc, a) for a in pc.anchors])
-        self._log(f"[Layer 0] Placed first card: {first_card.card_id}")
+        self._log(f"┌── [Layer 0] Placed Base Card: {first_card.card_id} (ID: {first_card.card_id})")
+        self._log(f"│   Pos: ({tx:.1f}, {ty:.1f}), Rot: {angle:.1f}°")
 
         attempts = 0
         while len(self.placed_cards) < min_cards and attempts < 200:
             attempts += 1
             if not self.active_anchors:
-                self._log("No more active anchors available")
+                self._log("│   [Info] No more active anchors available.")
                 break
                 
             # Pick a target anchor
@@ -126,7 +127,7 @@ class SynthesisEngine:
             # Pick a candidate card/anchor of SAME TYPE
             candidates = self.candidate_index.get(target_type, [])
             if not candidates:
-                self._log(f"No candidates for type {target_type}")
+                self._log(f"│   [Warn] No candidates for type {target_type}")
                 continue
                 
             candidate_card, cand_anchor_idx = random.choice(candidates)
@@ -134,7 +135,7 @@ class SynthesisEngine:
             
             # Verify type match (should always be true, but log for debugging)
             if candidate_anchor.canonical_type != target_type:
-                self._log(f"TYPE MISMATCH ERROR: target={target_type}, candidate={candidate_anchor.canonical_type}")
+                self._log(f"│   [Error] TYPE MISMATCH: target={target_type}, candidate={candidate_anchor.canonical_type}")
                 continue
             
             # Symmetry-based rotations
@@ -185,7 +186,8 @@ class SynthesisEngine:
                 # Rule: New card should ONLY occlude the target anchor, not other active anchors
                 collision_ok = self._check_collision(new_pc, target_anchor, target_pc)
                 if not collision_ok:
-                    self._log(f"Collision detected: {candidate_card.card_id} would occlude non-target anchors")
+                    # self._log(f"Collision detected: {candidate_card.card_id} would occlude non-target anchors")
+                    # Reduce spam for collision failures unless needed
                     continue
                 
                 # Commit
@@ -198,11 +200,12 @@ class SynthesisEngine:
                     if i != cand_anchor_idx:
                         self.active_anchors.append((new_pc, a))
                 
-                # Detail logging with angles
+                # Detail logging
                 new_anchor = new_pc.anchors[cand_anchor_idx]
-                self._log(f"[Layer {new_pc.layer}] Placed {candidate_card.card_id}")
-                self._log(f"  Target: {target_pc.card_data.card_id}.{target_type} angle_global={target_anchor.angle_global:.0f}°")
-                self._log(f"  Candidate: {candidate_card.card_id}.{target_type} local={candidate_anchor.angle:.0f}° -> global={new_anchor.angle_global:.0f}°")
+                indent = "│   " * (new_pc.layer + 1)
+                self._log(f"├── [Layer {new_pc.layer}] Placed {candidate_card.card_id}")
+                self._log(f"│   └── Connects to {target_pc.card_data.card_id} via {target_type} anchor")
+                self._log(f"│       Pos: ({tx:.0f}, {ty:.0f}), Angle: {new_anchor.angle_global:.0f}°")
                 success = True
                 break
             
