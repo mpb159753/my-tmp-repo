@@ -49,69 +49,53 @@ CONFIG = {
     }
 }
 
-def main(user_config=None):
-    # Merge user config with default
-    config = CONFIG.copy()
-    if user_config:
-        config.update(user_config)
-        # Deep merge for nested dicts if needed, currently shallow update for top level
-        # For simplicity, if user passes nested dicts, they overwrite entirely or we do manual check
-        if "COLLISION" in user_config: config["COLLISION"] = user_config["COLLISION"]
-        if "LIGHTING_DIST" in user_config: config["LIGHTING_DIST"] = user_config["LIGHTING_DIST"]
-        if "PERSPECTIVE_DIST" in user_config: config["PERSPECTIVE_DIST"] = user_config["PERSPECTIVE_DIST"]
-        if "DEBUG" in user_config: config["DEBUG"] = user_config["DEBUG"]
+import multiprocessing as mp
+from tqdm import tqdm
+import time
 
-    # Determine default assets path relative to this script
-    if not config.get("CANDIDATE_PATH"):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Assuming folder structure: synthesis_data/main.py -> ../assets2
-        config["CANDIDATE_PATH"] = os.path.join(base_dir, "..", "assets2")
-    
-    assets_dir = config["CANDIDATE_PATH"]
-    output_dir = config["OUTPUT_DIR"]
-    
-    # Ensure absolute path for output
-    if not os.path.isabs(output_dir):
-        output_dir = os.path.abspath(output_dir)
+# Global context for worker processes
+worker_ctx = {}
 
-    img_dir = os.path.join(output_dir, "images")
-    lbl_dir = os.path.join(output_dir, "labels")
-    log_dir = os.path.join(output_dir, "logs")
-    debug_dir = os.path.join(output_dir, "debug")
+def init_worker(config, cards, assets_dir, out_dirs):
+    """
+    Initialize worker process with its own Engine and Renderer instances.
+    """
+    # Re-seed random number generators to avoid identical sequences in forks
+    seed = (os.getpid() * int(time.time() * 1000)) % 123456789
+    random.seed(seed)
+    np.random.seed(seed)
     
-    os.makedirs(img_dir, exist_ok=True)
-    os.makedirs(lbl_dir, exist_ok=True)
-    if config["DEBUG"]["SAVE_LOGS"]:
-        os.makedirs(log_dir, exist_ok=True)
-    if config["DEBUG"]["SAVE_IMAGES"]:
-        os.makedirs(debug_dir, exist_ok=True)
+    worker_ctx['config'] = config
+    worker_ctx['assets_dir'] = assets_dir
+    worker_ctx['dirs'] = out_dirs
     
-    print("Loading cards...")
-    cards = load_all_cards(assets_dir)
-    print(f"Loaded {len(cards)} cards.")
-    
-    # Init Engine with Collision Config
-    engine = SynthesisEngine(
+    # Initialize Engine and Renderer locally for this process
+    worker_ctx['engine'] = SynthesisEngine(
         cards, 
-        canvas_size=(2048, 2048),
+        canvas_size=(2048, 2048), 
         collision_config=config["COLLISION"]
     )
     
-    # Init Renderer and set distributions
-    renderer = Renderer(canvas_size=(2048, 2048))
-    renderer.set_distributions(
+    worker_ctx['renderer'] = Renderer(canvas_size=(2048, 2048))
+    worker_ctx['renderer'].set_distributions(
         lighting_dist=config["LIGHTING_DIST"],
         perspective_dist=config["PERSPECTIVE_DIST"]
     )
-    
-    num_images = config["TOTAL_IMAGES"]
-    print(f"Generating {num_images} images with config: {config}")
-    
-    min_c = config["MIN_CARDS"]
-    max_c = config["MAX_CARDS"]
 
-    start_idx = config.get("START_INDEX", 0)
-    for i in range(start_idx, start_idx + num_images):
+def process_one_image(i):
+    """
+    Generate a single image.
+    """
+    cfg = worker_ctx['config']
+    engine = worker_ctx['engine']
+    renderer = worker_ctx['renderer']
+    assets_dir = worker_ctx['assets_dir']
+    img_dir, lbl_dir, log_dir, debug_dir = worker_ctx['dirs']
+    
+    min_c = cfg["MIN_CARDS"]
+    max_c = cfg["MAX_CARDS"]
+    
+    try:
         # Generate stacking
         n_cards = random.randint(min_c, max_c)
         placed_cards = engine.generate(min_cards=n_cards)
@@ -137,22 +121,95 @@ def main(user_config=None):
         # 4. Save labels
         renderer.save_yolo_labels(placed_cards, txt_path, valid_poly=valid_poly)
         
-        # Save Debug Data (Only 10% to save space)
+        # Save Debug Data (Only 10% to save space, or configured)
+        # Using a deterministic check based on index to ensure consistent debug output
         should_debug = (i % 10 == 0)
 
         # Logs
-        if config["DEBUG"]["SAVE_LOGS"] and should_debug:
+        if cfg["DEBUG"]["SAVE_LOGS"] and should_debug:
             log_path = os.path.join(log_dir, f"{base_name}.log")
             engine.save_logs(log_path)
         
         # Debug Images
-        if config["DEBUG"]["SAVE_IMAGES"] and should_debug:
+        if cfg["DEBUG"]["SAVE_IMAGES"] and should_debug:
             debug_path = os.path.join(debug_dir, f"{base_name}_debug.jpg")
-            # Note: We pass canvas (already perspective warped) and the txt path (polygons)
             renderer.render_debug_v2(canvas, txt_path, debug_path)
+            
+        return True
+    except Exception as e:
+        print(f"Error generating image {i}: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def main(user_config=None):
+    # Merge user config with default
+    config = CONFIG.copy()
+    if user_config:
+        config.update(user_config)
+        if "COLLISION" in user_config: config["COLLISION"] = user_config["COLLISION"]
+        if "LIGHTING_DIST" in user_config: config["LIGHTING_DIST"] = user_config["LIGHTING_DIST"]
+        if "PERSPECTIVE_DIST" in user_config: config["PERSPECTIVE_DIST"] = user_config["PERSPECTIVE_DIST"]
+        if "DEBUG" in user_config: config["DEBUG"] = user_config["DEBUG"]
+
+    # Determine default assets path relative to this script
+    if not config.get("CANDIDATE_PATH"):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        # Assuming folder structure: synthesis_data/main.py -> ../assets2
+        candidate_path = os.path.join(base_dir, "..", "assets2")
+        if os.path.exists(candidate_path):
+             config["CANDIDATE_PATH"] = candidate_path
+        else:
+             # Fallback to absolute if simple relative check fails (e.g. running from odd location)
+             config["CANDIDATE_PATH"] = "/Users/mpb/WorkSpace/local_job/assets2"
+    
+    assets_dir = config["CANDIDATE_PATH"]
+    output_dir = config["OUTPUT_DIR"]
+    
+    # Ensure absolute path for output
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.abspath(output_dir)
+
+    img_dir = os.path.join(output_dir, "images")
+    lbl_dir = os.path.join(output_dir, "labels")
+    log_dir = os.path.join(output_dir, "logs")
+    debug_dir = os.path.join(output_dir, "debug")
+    
+    os.makedirs(img_dir, exist_ok=True)
+    os.makedirs(lbl_dir, exist_ok=True)
+    if config["DEBUG"]["SAVE_LOGS"]:
+        os.makedirs(log_dir, exist_ok=True)
+    if config["DEBUG"]["SAVE_IMAGES"]:
+        os.makedirs(debug_dir, exist_ok=True)
+    
+    print(f"Loading cards from {assets_dir}...")
+    cards = load_all_cards(assets_dir)
+    print(f"Loaded {len(cards)} cards.")
+    
+    num_images = config["TOTAL_IMAGES"]
+    print(f"Generating {num_images} images with config: {config}")
+    print(f"Using Parallel Synthesis with {mp.cpu_count()} cores.")
+    
+    start_idx = config.get("START_INDEX", 0)
+    indices = range(start_idx, start_idx + num_images)
+    
+    # Prepare output directories list for worker
+    out_dirs = [img_dir, lbl_dir, log_dir, debug_dir]
+
+    # Use multiprocessing Pool
+    # We leave 1 core free if more than 4, else use all
+    num_workers = mp.cpu_count()
+    if num_workers > 4:
+        num_workers -= 1
         
-        if (i+1) % 10 == 0:
-            print(f"Done {i+1} (Batch progress)")
+    with mp.Pool(processes=num_workers, initializer=init_worker, initargs=(config, cards, assets_dir, out_dirs)) as pool:
+        # Use tqdm for progress bar
+        results = list(tqdm(pool.imap(process_one_image, indices), total=num_images))
+    
+    success_count = sum(results)
+    print(f"Done. Successfully generated {success_count}/{num_images} images.")
 
 if __name__ == "__main__":
+    # Support spawn for consistency across platforms (optional but good for Mac)
+    # mp.set_start_method('spawn') 
     main()
