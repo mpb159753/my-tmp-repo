@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+# Parse Arguments
+FORCE_SYNTH=false
+for arg in "$@"; do
+    case $arg in
+        --force-synth)
+        FORCE_SYNTH=true
+        shift
+        ;;
+    esac
+done
+
 # Default Settings
 NUM_TRAIN_IMAGES=5000
 # Ascend usually benefits from larger batches if memory allows, but YOLOv8/11 determines this.
@@ -21,7 +32,29 @@ fi
 
 # 1. Data Synthesis
 echo ""
-echo "[Step 1] Generating Synthetic Data..."
+echo "[Step 1] Checking Synthetic Data..."
+
+DATASET_DIR="synthesis_data/dataset"
+VAL_DIR="synthesis_data/dataset_val"
+
+# Check if data exists
+if [ -d "$DATASET_DIR/images" ] && [ "$(ls -A $DATASET_DIR/images)" ] && \
+   [ -d "$VAL_DIR/images" ] && [ "$(ls -A $VAL_DIR/images)" ]; then
+    DATA_EXISTS=true
+else
+    DATA_EXISTS=false
+fi
+
+if [ "$DATA_EXISTS" = true ] && [ "$FORCE_SYNTH" = false ]; then
+    echo "Files found in '$DATASET_DIR' and '$VAL_DIR'. Skipping synthesis."
+    echo "Use --force-synth to overwrite."
+else
+    if [ "$DATA_EXISTS" = true ]; then
+        echo "Data exists but --force-synth specified. Regenerating..."
+    else
+        echo "Data missing. Generating..."
+    fi
+    echo "Generating Synthetic Data..."
 
 # Set Candidates Path via Env Var or modify config dynamically? 
 # The main.py uses CANDIDATE_PATH or defaults to abs path. 
@@ -78,6 +111,8 @@ EOF
 
 echo "Running Synthesis Script..."
 python run_synthesis.py
+
+fi # End of synthesis check
 
 echo ""
 echo "[Step 2] Preparing Split Files..."
