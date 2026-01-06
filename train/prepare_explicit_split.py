@@ -1,13 +1,10 @@
 import os
 import glob
 
-# Config - Relative paths for portability
-# This script determines the absolute paths based on its own location
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # .../train
-PROJECT_ROOT = os.path.dirname(BASE_DIR) # .../ (The export root)
-TRAIN_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset")
-VAL_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset_val")
-OUTPUT_DIR = BASE_DIR
+# Config
+TRAIN_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset"
+VAL_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset_val"
+OUTPUT_DIR = "/Users/mpb/WorkSpace/local_job/train"
 
 def get_images(root):
     if not os.path.exists(root):
@@ -17,9 +14,7 @@ def get_images(root):
     return sorted(files) # Sort for consistency
 
 def main():
-    print(f"Preparing explicit train/val lists...")
-    print(f"  Base Dir: {BASE_DIR}")
-    print(f"  Train Root: {TRAIN_ROOT}")
+    print("Preparing explicit train/val lists...")
     
     # 1. Train List (All images in synthesis_data/dataset)
     train_files = get_images(TRAIN_ROOT)
@@ -35,8 +30,9 @@ def main():
     else:
         print(f"Found {len(val_files)} validation images.")
         
+    print(f"Found {len(val_files)} validation images.")
+        
     # Write full lists
-    # We write absolute paths so that YOLO can find them easily regardless of where verification is run
     with open(os.path.join(OUTPUT_DIR, "train_full.txt"), "w") as f:
         f.write("\n".join(train_files))
         

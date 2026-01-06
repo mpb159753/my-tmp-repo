@@ -1,0 +1,167 @@
+[Layer 0] Placed first card: blue_2_card_08
+[Layer 1] Placed red_1_card_01
+  Target: blue_2_card_08.TYPE_RECT_LONG angle_global=257°
+  Candidate: red_1_card_01.TYPE_RECT_LONG local=90° -> global=257°
+[Layer 2] Placed mirror_blue_1_card_06
+  Target: red_1_card_01.TYPE_TRIANGLE angle_global=212°
+  Candidate: mirror_blue_1_card_06.TYPE_TRIANGLE local=180° -> global=212°
+  -> Rejected: Would occlude red_1_card_01's TYPE_SQUARE by 78.5%
+Collision detected: green_1_card_01 would occlude non-target anchors
+  -> Rejected: Would overlap 5.9% of non-parent card blue_2_card_08
+Collision detected: mirror_purple_2_card_08 would occlude non-target anchors
+  -> Rejected: Would overlap 6.3% of non-parent card blue_2_card_08
+Collision detected: mirror_purple_2_card_08 would occlude non-target anchors
+[Layer 3] Placed pink_1_card_08
+  Target: mirror_blue_1_card_06.TYPE_RECT_SHORT angle_global=212°
+  Candidate: pink_1_card_08.TYPE_RECT_SHORT local=90° -> global=212°
+  -> Rejected: Would overlap 8.4% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_yellow_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_yellow_1_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 43.0% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_yellow_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: green_2_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 45.2% of non-parent card mirror_blue_1_card_06
+Collision detected: green_2_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 8.8% of non-parent card mirror_blue_1_card_06
+Collision detected: green_2_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 6.5% of non-parent card blue_2_card_08
+Collision detected: mirror_pink_2_card_04 would occlude non-target anchors
+  -> Rejected: Would overlap 14.8% of non-parent card red_1_card_01
+Collision detected: mirror_blue_1_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_blue_1_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 60.5% of non-parent card red_1_card_01
+Collision detected: mirror_blue_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 50.4%
+Collision detected: mirror_blue_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude blue_2_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_blue_1_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 45.3% of non-parent card red_1_card_01
+Collision detected: mirror_red_1_card_05 would occlude non-target anchors
+  -> Rejected: Would overlap 35.8% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_green_2_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_green_2_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude blue_2_card_08's TYPE_SQUARE by 59.2%
+Collision detected: mirror_red_1_card_07 would occlude non-target anchors
+  -> Rejected: Would occlude blue_2_card_08's TYPE_SQUARE by 98.8%
+Collision detected: mirror_red_1_card_02 would occlude non-target anchors
+[Layer 4] Placed mirror_green_2_card_01
+  Target: blue_2_card_08.TYPE_TRIANGLE angle_global=32°
+  Candidate: mirror_green_2_card_01.TYPE_TRIANGLE local=180° -> global=32°
+  -> Rejected: Would overlap 39.1% of non-parent card blue_2_card_08
+Collision detected: red_2_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 36.3% of non-parent card blue_2_card_08
+Collision detected: red_2_card_03 would occlude non-target anchors
+[Layer 5] Placed red_2_card_03
+  Target: red_1_card_01.TYPE_SQUARE angle_global=167°
+  Candidate: red_2_card_03.TYPE_SQUARE local=180° -> global=167°
+  -> Rejected: Would overlap 6.4% of non-parent card blue_2_card_08
+Collision detected: mirror_blue_1_card_00 would occlude non-target anchors
+  -> Rejected: Would overlap 19.1% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_red_2_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_red_2_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 46.0%
+Collision detected: pink_1_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 37.1% of non-parent card red_1_card_01
+Collision detected: pink_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: pink_1_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 7.5% of non-parent card mirror_green_2_card_01
+Collision detected: pink_1_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_SQUARE by 100.0%
+Collision detected: mirror_red_2_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude mirror_green_2_card_01's TYPE_RECT_SHORT by 48.7%
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would overlap 57.9% of non-parent card red_1_card_01
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 42.3%
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+[Layer 6] Placed mirror_purple_1_card_02
+  Target: mirror_green_2_card_01.TYPE_SQUARE angle_global=32°
+  Candidate: mirror_purple_1_card_02.TYPE_SQUARE local=180° -> global=32°
+  -> Rejected: Would occlude red_2_card_03's TYPE_TRIANGLE by 100.0%
+Collision detected: pink_2_card_07 would occlude non-target anchors
+  -> Rejected: Would occlude mirror_purple_1_card_02's TYPE_RECT_SHORT by 55.0%
+Collision detected: mirror_yellow_1_card_07 would occlude non-target anchors
+  -> Rejected: Would occlude mirror_purple_1_card_02's TYPE_RECT_SHORT by 100.0%
+Collision detected: pink_2_card_03 would occlude non-target anchors
+  -> Rejected: Would occlude mirror_purple_1_card_02's TYPE_RECT_SHORT by 100.0%
+Collision detected: mirror_purple_2_card_01 would occlude non-target anchors
+[Layer 7] Placed yellow_2_card_06
+  Target: red_2_card_03.TYPE_TRIANGLE angle_global=347°
+  Candidate: yellow_2_card_06.TYPE_TRIANGLE local=315° -> global=347°
+  -> Rejected: Would occlude yellow_2_card_06's TYPE_TRIANGLE by 100.0%
+Collision detected: pink_2_card_00 would occlude non-target anchors
+  -> Rejected: Would overlap 7.6% of non-parent card mirror_green_2_card_01
+Collision detected: red_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 46.8%
+Collision detected: red_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: red_1_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 37.4% of non-parent card red_1_card_01
+Collision detected: red_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude blue_2_card_08's TYPE_SQUARE by 61.4%
+Collision detected: yellow_1_card_07 would occlude non-target anchors
+  -> Rejected: Would overlap 6.0% of non-parent card blue_2_card_08
+Collision detected: mirror_red_1_card_01 would occlude non-target anchors
+[Layer 8] Placed green_1_card_01
+  Target: mirror_green_2_card_01.TYPE_RECT_SHORT angle_global=32°
+  Candidate: green_1_card_01.TYPE_RECT_SHORT local=90° -> global=32°
+  -> Rejected: Would occlude mirror_purple_1_card_02's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_red_2_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 47.7% of non-parent card mirror_green_2_card_01
+Collision detected: mirror_pink_2_card_05 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_red_2_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 43.4% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_red_2_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 8.9% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_red_2_card_03 would occlude non-target anchors
+  -> Rejected: Would overlap 8.0% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would overlap 41.9% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_green_1_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude red_2_card_03's TYPE_TRIANGLE by 47.8%
+Collision detected: blue_1_card_08 would occlude non-target anchors
+  -> Rejected: Would occlude mirror_purple_1_card_02's TYPE_TRIANGLE by 100.0%
+Collision detected: purple_1_card_02 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 51.7%
+Collision detected: mirror_green_1_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 59.9% of non-parent card red_1_card_01
+Collision detected: mirror_green_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_green_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude green_1_card_01's TYPE_TRIANGLE by 46.7%
+Collision detected: mirror_green_1_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude yellow_2_card_06's TYPE_TRIANGLE by 100.0%
+Collision detected: green_1_card_05 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_purple_2_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude green_1_card_01's TYPE_TRIANGLE by 39.0%
+Collision detected: mirror_purple_2_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 43.7%
+Collision detected: mirror_purple_2_card_04 would occlude non-target anchors
+  -> Rejected: Would overlap 58.1% of non-parent card red_1_card_01
+Collision detected: mirror_purple_2_card_04 would occlude non-target anchors
+  -> Rejected: Would overlap 19.1% of non-parent card mirror_blue_1_card_06
+Collision detected: mirror_red_2_card_06 would occlude non-target anchors
+  -> Rejected: Would occlude pink_1_card_08's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_red_2_card_06 would occlude non-target anchors
+  -> Rejected: Would overlap 15.6% of non-parent card red_1_card_01
+Collision detected: blue_2_card_04 would occlude non-target anchors
+  -> Rejected: Would occlude green_1_card_01's TYPE_TRIANGLE by 100.0%
+Collision detected: yellow_2_card_05 would occlude non-target anchors
+  -> Rejected: Would occlude yellow_2_card_06's TYPE_TRIANGLE by 100.0%
+Collision detected: mirror_pink_2_card_00 would occlude non-target anchors
+[Layer 9] Placed red_2_card_07
+  Target: pink_1_card_08.TYPE_TRIANGLE angle_global=347°
+  Candidate: red_2_card_07.TYPE_TRIANGLE local=90° -> global=347°
+Generation complete: 10 cards placed

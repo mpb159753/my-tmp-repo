@@ -15,8 +15,23 @@ class Renderer:
         
         # Load background textures
         self.bg_textures = []
-        bg_dir = "/Users/mpb/WorkSpace/local_job/assets/backgrounds"
-        if os.path.exists(bg_dir):
+        # Try to find backgrounds relative to assets dir or project root
+        # Default assumption: assets/backgrounds is usually where it is.
+        # But we need to be flexible.
+        possible_bg_dirs = [
+            "/Users/mpb/WorkSpace/local_job/assets/backgrounds", # Keep legacy for safety locally
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "backgrounds"), # ../assets/backgrounds from synthesis_data/
+            os.path.join(os.getcwd(), "assets", "backgrounds"),
+            "./assets/backgrounds"
+        ]
+        
+        bg_dir = None
+        for d in possible_bg_dirs:
+            if os.path.exists(d) and os.path.isdir(d):
+                bg_dir = d
+                break
+        
+        if bg_dir:
             for fname in os.listdir(bg_dir):
                 if fname.lower().endswith(('.jpg', '.png', '.jpeg')):
                     img = cv2.imread(os.path.join(bg_dir, fname))

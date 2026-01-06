@@ -1,0 +1,15 @@
+# Tacta Board Game Scoring Dataset Configuration (V1 Backup)
+
+# Path to the dataset root
+path: /Users/mpb/WorkSpace/local_job/synthesis_data/dataset
+
+# Train and Validation splits (Old random split)
+train: /Users/mpb/WorkSpace/local_job/train/train.txt
+val: /Users/mpb/WorkSpace/local_job/train/val.txt
+
+# Class names
+names:
+  0: Score_1
+  1: Score_2
+  2: Score_3
+  3: Score_4

@@ -10,8 +10,10 @@ from renderer import Renderer
 CONFIG = {
     "OUTPUT_DIR": "./synthesis_data/dataset",
     "TOTAL_IMAGES": 5000,
-    "MIN_CARDS": 5,
-    "MAX_CARDS": 10,
+    "MIN_CARDS": 40,
+    "MAX_CARDS": 80,
+    # Simulate zooming out by shrinking cards (0.4x)
+    "GLOBAL_SCALE": 0.4, 
     "COLLISION": {
         "PARENT_OVERLAP_MAX": 0.30,
         "NON_PARENT_OVERLAP_MAX": 0.005,
@@ -81,7 +83,7 @@ def init_worker(config, cards, assets_dir, out_dirs):
     worker_ctx['engine'] = SynthesisEngine(
         cards, 
         canvas_size=(2048, 2048), 
-        collision_config=config["COLLISION"]
+        collision_config={**config["COLLISION"], "GLOBAL_SCALE": config.get("GLOBAL_SCALE", 1.0)}
     )
     
     worker_ctx['renderer'] = Renderer(canvas_size=(2048, 2048))
@@ -131,7 +133,8 @@ def process_one_image(i):
         
         # Save Debug Data (Only 10% to save space, or configured)
         # Using a deterministic check based on index to ensure consistent debug output
-        should_debug = (i % 10 == 0)
+        debug_interval = cfg["DEBUG"].get("INTERVAL", 10)
+        should_debug = (i % debug_interval == 0)
 
         # Logs
         if cfg["DEBUG"]["SAVE_LOGS"] and should_debug:
@@ -160,16 +163,21 @@ def main(user_config=None):
         if "PERSPECTIVE_DIST" in user_config: config["PERSPECTIVE_DIST"] = user_config["PERSPECTIVE_DIST"]
         if "DEBUG" in user_config: config["DEBUG"] = user_config["DEBUG"]
 
-    # Determine default assets path relative to this script
     if not config.get("CANDIDATE_PATH"):
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Assuming folder structure: synthesis_data/main.py -> ../assets2
-        candidate_path = os.path.join(base_dir, "..", "assets2")
+        # Default: ../assets/cards (standardized structure)
+        candidate_path = os.path.join(base_dir, "..", "assets", "cards")
         if os.path.exists(candidate_path):
              config["CANDIDATE_PATH"] = candidate_path
         else:
-             # Fallback to absolute if simple relative check fails (e.g. running from odd location)
-             config["CANDIDATE_PATH"] = "/Users/mpb/WorkSpace/local_job/assets2"
+             # Fallback: maybe we are in export/root?
+             # If running from export/synthesis_data, ../assets/cards should work.
+             # If legacy path exists?
+             legacy_path = os.path.join(base_dir, "..", "assets2")
+             if os.path.exists(legacy_path):
+                 config["CANDIDATE_PATH"] = legacy_path 
+             else:
+                 config["CANDIDATE_PATH"] = "/Users/mpb/WorkSpace/local_job/assets/cards"
     
     assets_dir = config["CANDIDATE_PATH"]
     output_dir = config["OUTPUT_DIR"]
@@ -205,14 +213,24 @@ def main(user_config=None):
     out_dirs = [img_dir, lbl_dir, log_dir, debug_dir]
 
     # Use multiprocessing Pool
-    # We leave 1 core free if more than 4, else use all
+    # Determine workers
+    use_parallel = config.get("USE_PARALLEL", True)
     num_workers = mp.cpu_count()
     if num_workers > 4:
         num_workers -= 1
         
-    with mp.Pool(processes=num_workers, initializer=init_worker, initargs=(config, cards, assets_dir, out_dirs)) as pool:
-        # Use tqdm for progress bar
-        results = list(tqdm(pool.imap(process_one_image, indices), total=num_images))
+    if use_parallel and num_workers > 1:
+        print(f"Using Parallel Synthesis with {num_workers} cores.")
+        with mp.Pool(processes=num_workers, initializer=init_worker, initargs=(config, cards, assets_dir, out_dirs)) as pool:
+            # Use tqdm for progress bar
+            results = list(tqdm(pool.imap(process_one_image, indices), total=num_images))
+    else:
+        print("Using Sequential Synthesis (Single Core).")
+        # Initialize worker global state for this process
+        init_worker(config, cards, assets_dir, out_dirs)
+        results = []
+        for idx in tqdm(indices, total=num_images):
+            results.append(process_one_image(idx))
     
     success_count = sum(results)
     print(f"Done. Successfully generated {success_count}/{num_images} images.")

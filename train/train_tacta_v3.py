@@ -36,7 +36,6 @@ def main(args):
         exist_ok=True,    # Overwrite existing experiment folder if name collides (we use distinct names)
         patience=5,       # Aggressive early stopping (Matched to v2 config)
         save=True,        # Ensure best/last are saved
-        amp=args.amp,     # Mixed Precision Control
     )
     
     # 4. Export
@@ -59,7 +58,6 @@ if __name__ == "__main__":
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
     parser.add_argument("--project", type=str, default="/Users/mpb/WorkSpace/local_job/train/runs", help="Project name")
     parser.add_argument("--name", type=str, default="tacta_m4_v3", help="Experiment name (v3)")
-    parser.add_argument("--amp", type=str, default="True", help="Enable Automatic Mixed Precision (True/False)")
     
     args = parser.parse_args()
     
@@ -67,24 +65,12 @@ if __name__ == "__main__":
     if args.cache == "False": args.cache = False
     elif args.cache == "True": args.cache = True
     
-    if args.amp == "False": args.amp = False
-    elif args.amp == "True": args.amp = True
-    
-    # Check if data files exist
     # Check if data files exist
     with open(args.data, 'r') as f:
         data_cfg = yaml.safe_load(f)
         train_path = data_cfg.get('train')
-        
-        # Resolve path relative to yaml file if it's not absolute
-        yaml_dir = os.path.dirname(os.path.abspath(args.data))
-        if train_path and not os.path.isabs(train_path):
-            check_path = os.path.join(yaml_dir, train_path)
-        else:
-            check_path = train_path
-            
-        if check_path and not os.path.exists(check_path):
-             print(f"WARNING: Train file list not found at {check_path}. Please run prepare_split.py first.")
+        if not os.path.exists(train_path):
+             print(f"WARNING: Train file list not found at {train_path}. Please run prepare_split.py first.")
 
     # Resume Logic
     if args.resume:

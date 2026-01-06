@@ -1,0 +1,9 @@
+path: /Users/mpb/WorkSpace/local_job/train/debug/mock_dataset
+train: images
+val: images
+
+names:
+  0: Score_1
+  1: Score_2
+  2: Score_3
+  3: Score_4

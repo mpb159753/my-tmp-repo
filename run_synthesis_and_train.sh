@@ -81,7 +81,7 @@ import sys
 
 # Calculate relative path to assets
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_DIR = os.path.join(BASE_DIR, "assets2")
+ASSETS_DIR = os.path.join(BASE_DIR, "assets", "cards")
 TRAIN_OUTPUT_DIR = os.path.join(BASE_DIR, "synthesis_data", "dataset")
 
 # Add paths for imports
