@@ -36,6 +36,26 @@ This package contains the **Synthesis Engine**, **Raw Assets**, and **Training S
     ./run_synthesis_and_train.sh
     ```
 
+### 3. Offline Environment (Important)
+Since this repository was stripped of large weight files (`.pt`) to comply with GitHub limits, you must **manually import the base model** if the target machine has no internet access.
+
+1.  **Download Base Model**:
+    On a machine with internet, download `yolo11m-seg.pt` from the Ultralytics release page:
+    *   URL: `https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m-seg.pt`
+    *   (Or search "YOLO11m-seg.pt download")
+
+2.  **Transfer & Place**:
+    Copy `yolo11m-seg.pt` to the root of this `export` directory on the target machine.
+    ```
+    export/
+      ├── run_synthesis_and_train.sh
+      ├── yolo11m-seg.pt  <-- Place here
+      ...
+    ```
+
+3.  **Run**:
+    The script will automatically find and use the local `yolo11m-seg.pt` instead of trying to download it.
+
 ## Customization
 - **Training Config**: Edit `train/tacta.yaml` or `run_synthesis_and_train.sh` to adjust batch size (default 16 for Ascend) or epochs.
 - **Data Size**: Edit `run_synthesis_and_train.sh` (`NUM_TRAIN_IMAGES`) to change the dataset size.
