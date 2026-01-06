@@ -107,8 +107,23 @@ def process_one_image(i):
     
     try:
         # Generate stacking
-        n_cards = random.randint(min_c, max_c)
-        placed_cards = engine.generate(min_cards=n_cards)
+        # Retry logic for strict density enforcement
+        placed_cards = []
+        gen_attempts = 0
+        valid_gen = False
+        
+        while gen_attempts < 10 and not valid_gen:
+             n_cards = random.randint(min_c, max_c)
+             # engine.generate usually respects min_cards if attempts limit allows
+             placed_cards = engine.generate(min_cards=n_cards)
+             
+             if len(placed_cards) >= min_c:
+                 valid_gen = True
+             else:
+                 gen_attempts += 1
+        
+        if not valid_gen:
+             print(f"[Warning] Image {i}: Could not reach min cards ({min_c}). Generated {len(placed_cards)}.")
         
         # Save name
         base_name = f"synth_{i:04d}"
