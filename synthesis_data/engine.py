@@ -161,95 +161,40 @@ class SynthesisEngine:
             for sym_rot in possible_rotations:
                 delta_theta = (target_anchor.angle_global - (candidate_anchor.angle + sym_rot))
                 
-                # Step 1: Rotate card around the candidate anchor centroid
-                # NOTE: cv2.getRotationMatrix2D uses CCW rotation in screen coords (Y-down),
-                # which is effectively CW in math coords. Our angles are in math coords,
-                # so we need to NEGATE delta_theta for OpenCV.
+                # Correct Matrix Calculation with Global Scale
+                # 1. Scale Local Centroid
+                c_x_local, c_y_local = candidate_anchor.centroid
+                c_x_scaled = c_x_local * self.global_scale
+                c_y_scaled = c_y_local * self.global_scale
+
+                # 2. Rotation around SCALED centroid
+                # Rotate around the point where the anchor "is" after scaling
                 M_rot_cand = cv2.getRotationMatrix2D(
-                    (candidate_anchor.centroid[0], candidate_anchor.centroid[1]), 
-                    -delta_theta, 1.0  # NEGATE for correct direction
+                    (c_x_scaled, c_y_scaled), 
+                    -delta_theta, 1.0
                 )
                 M_rot_cand_3x3 = np.eye(3)
                 M_rot_cand_3x3[:2, :] = M_rot_cand
                 
-                # Step 2: After rotation, the anchor centroid stays at the same LOCAL position
-                # because we rotated around it. Now translate so rotated centroid goes to target.
-                # The centroid after rotation is still at candidate_anchor.centroid in local coords,
-                # but we need to move the whole rotated card so that point aligns with target.
-                tx = target_anchor.centroid_global[0] - candidate_anchor.centroid[0]
-                ty = target_anchor.centroid_global[1] - candidate_anchor.centroid[1]
+                # 3. Translation
+                # Move the rotated, scaled centroid to the target global position
+                tx = target_anchor.centroid_global[0] - c_x_scaled
+                ty = target_anchor.centroid_global[1] - c_y_scaled
+                
+                # Note: M_rot does not move the center of rotation (it stays at c_scaled).
+                # So we just translate (c_scaled) to (target_global).
+                # But M_rot might add a translation component to keeping (c_scaled) fixed?
+                # Yes, cv2.getRotationMatrix2D(C, ..) -> R | T s.t. T = C - R*C
+                # So M_rot * C = R*C + C - R*C = C.
+                # So the point comes out at C_scaled. good.
+                
                 M_trans_cand = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float64)
                 
-                # Apply Global Scaling to candidate as well
+                # 4. Global Scale Matrix
                 M_scale = np.diag([self.global_scale, self.global_scale, 1.0])
                 
-                # Note: The logic above derived M_rot and translation based on 'final' global coordinates.
-                # However, our PlacedCard expects a matrix that transforms LOCAL (0..w, 0..h) to GLOBAL.
-                # The centroids we used for alignment (target_anchor.centroid_global) are already global.
-                # The candidate_anchor.centroid is LOCAL (unscaled).
-                # 
-                # To align correctly with scaling:
-                # 1. Scale local card points by S
-                # 2. Rotate 
-                # 3. Translate
-                #
-                # The alignment math `tx = target - candidate` assumed `candidate` was just rotated.
-                # If we scale, the local centroid moves: `center_scaled = center * scale`.
-                # We need to recalculate the translation `tx, ty`.
-                
-                # Correct Order:
-                # 1. We want: Global_Anchor_Pos = M_final * Local_Anchor_Pos
-                # 2. Local_Anchor_Pos (homog) = [cx, cy, 1]
-                # 3. M_final = T * R * S
-                # 4. Global_Pos = T * R * S * [cx, cy, 1].T
-                #               = T * R * [cx*s, cy*s, 1].T
-                #               = T * [rotated_scaled_x, rotated_scaled_y, 1].T
-                #
-                # We know Target_Global_Pos. We need to find T.
-                # Target_Pos = T_vec + (R * S * Local_Pos)
-                # T_vec = Target_Pos - (R * S * Local_Pos)
-                
-                # Re-calculate alignment with Scale
-                scaled_local_centroid = np.array([
-                    candidate_anchor.centroid[0] * self.global_scale,
-                    candidate_anchor.centroid[1] * self.global_scale,
-                    1.0
-                ])
-                
-                # Rotate the SCALED centroid
-                # M_rot_cand is 2x3. 
-                # We need a pure 3x3 rotation matrix for the vector multiplication
-                # But M_rot_cand from getRotationMatrix2D includes a center of rotation which complicates things.
-                # Let's keep it simple:
-                # We want to rotate around the SCALED centroid? No, we just need to orient the card.
-                # Let's rotate around (0,0) for the vector calculation.
-                
-                theta_rad = np.radians(-delta_theta) # Remember OpenCV negation
-                c, s = np.cos(theta_rad), np.sin(theta_rad)
-                R_pure = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
-                
-                # Vector in rotated space
-                rotated_scaled_centroid = R_pure @ scaled_local_centroid
-                
-                # Now we know where the centroid IS relative to the card origin (0,0) after Scale+Rot.
-                # We want this point to be at `target_anchor.centroid_global`.
-                # So we shift the card origin so that point lands there.
-                
-                tx = target_anchor.centroid_global[0] - rotated_scaled_centroid[0]
-                ty = target_anchor.centroid_global[1] - rotated_scaled_centroid[1]
-                
-                M_trans_cand = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
-                
-                # Combine: T * R * S
-                # But notice our `M_rot_cand` earlier was rotating around `candidate_anchor.centroid`. 
-                # That was for the "unscaled" logic. We should reconstruct the matrix chain cleanly.
-                
-                # R_pure is rotation around (0,0).
-                # We want to rotate the card around its own center? No, just orientation.
-                # T * R * S is the standard model matrix.
-                # Rotation here is around (0,0) of the scaled card?
-                
-                M_final_cand = M_trans_cand @ R_pure @ M_scale
+                # 5. Combine: Scale -> Rotate -> Translate
+                M_final_cand = M_trans_cand @ M_rot_cand_3x3 @ M_scale
                 
                 new_pc = PlacedCard(candidate_card, M_final_cand, len(self.placed_cards))
                 
