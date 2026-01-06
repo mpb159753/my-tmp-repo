@@ -71,6 +71,7 @@ def init_worker(config, cards, assets_dir, out_dirs):
     # The engine writes to self.logs list for file saving, independent of logger.info if we tweak it.
     # However, engine uses logging.basicConfig. We should adjust the logger for "synthesis_data.engine".
     logging.getLogger("synthesis_data.engine").setLevel(logging.WARNING)
+    logging.getLogger("engine").setLevel(logging.WARNING)
     
     worker_ctx['config'] = config
     worker_ctx['assets_dir'] = assets_dir
