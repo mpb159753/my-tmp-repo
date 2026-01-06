@@ -66,11 +66,20 @@ if __name__ == "__main__":
     elif args.cache == "True": args.cache = True
     
     # Check if data files exist
+    # Check if data files exist
     with open(args.data, 'r') as f:
         data_cfg = yaml.safe_load(f)
         train_path = data_cfg.get('train')
-        if not os.path.exists(train_path):
-             print(f"WARNING: Train file list not found at {train_path}. Please run prepare_split.py first.")
+        
+        # Resolve path relative to yaml file if it's not absolute
+        yaml_dir = os.path.dirname(os.path.abspath(args.data))
+        if train_path and not os.path.isabs(train_path):
+            check_path = os.path.join(yaml_dir, train_path)
+        else:
+            check_path = train_path
+            
+        if check_path and not os.path.exists(check_path):
+             print(f"WARNING: Train file list not found at {check_path}. Please run prepare_split.py first.")
 
     # Resume Logic
     if args.resume:
