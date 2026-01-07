@@ -73,12 +73,27 @@ class SynthesisEngine:
         self.logs = []
 
     def _build_index(self):
-        index = {TYPE_TRIANGLE: [], TYPE_SQUARE: [], TYPE_RECT_LONG: [], TYPE_RECT_SHORT: []}
+        # Index: Type -> Color_ID -> List of (Card, AnchorIndex)
+        index = {
+            TYPE_TRIANGLE: {}, TYPE_SQUARE: {}, 
+            TYPE_RECT_LONG: {}, TYPE_RECT_SHORT: {}
+        }
         for card in self.card_library:
             for i, anchor in enumerate(card.anchors):
-                if anchor.canonical_type in index:
-                    index[anchor.canonical_type].append((card, i))
-        logger.info(f"Built candidate index: TRIANGLE={len(index[TYPE_TRIANGLE])}, SQUARE={len(index[TYPE_SQUARE])}, RECT_LONG={len(index[TYPE_RECT_LONG])}, RECT_SHORT={len(index[TYPE_RECT_SHORT])}")
+                ctype = anchor.canonical_type
+                cid = card.color_id # Use card color
+                
+                if ctype in index:
+                    if cid not in index[ctype]:
+                        index[ctype][cid] = []
+                    index[ctype][cid].append((card, i))
+                    
+        # Log stats
+        msg = "Built candidate index (Types/Colors): "
+        for t, colors in index.items():
+            count = sum(len(v) for v in colors.values())
+            msg += f"{t}={count} "
+        logger.info(msg)
         return index
 
     def reset(self):
@@ -105,8 +120,6 @@ class SynthesisEngine:
         ty = self.canvas_size[1]/2 - first_card.height/2
         M_trans = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
         
-        M_trans = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
-        
         # Apply Global Scaling
         # Scale -> Rotate -> Translate
         M_scale = np.diag([self.global_scale, self.global_scale, 1.0])
@@ -130,13 +143,23 @@ class SynthesisEngine:
             target_pc, target_anchor = self.active_anchors[target_idx]
             target_type = target_anchor.original.canonical_type
             
-            # Pick a candidate card/anchor of SAME TYPE
-            candidates = self.candidate_index.get(target_type, [])
-            if not candidates:
+            # Pick a candidate:
+            # 1. Look up candidates for this TYPE
+            type_candidates = self.candidate_index.get(target_type, {})
+            if not type_candidates:
                 self._log(f"│   [Warn] No candidates for type {target_type}")
                 continue
                 
-            candidate_card, cand_anchor_idx = random.choice(candidates)
+            # 2. Pick a random COLOR (Uniform Distribution)
+            available_colors = list(type_candidates.keys())
+            if not available_colors:
+                continue
+                
+            chosen_color = random.choice(available_colors)
+            color_candidates = type_candidates[chosen_color]
+            
+            # 3. Pick random card of that color
+            candidate_card, cand_anchor_idx = random.choice(color_candidates)
             candidate_anchor = candidate_card.anchors[cand_anchor_idx]
             
             # Verify type match (should always be true, but log for debugging)
@@ -166,34 +189,78 @@ class SynthesisEngine:
                 c_x_local, c_y_local = candidate_anchor.centroid
                 c_x_scaled = c_x_local * self.global_scale
                 c_y_scaled = c_y_local * self.global_scale
-
-                # 2. Rotation around SCALED centroid
-                # Rotate around the point where the anchor "is" after scaling
+                
+                # 4. Jitter: "Directional Shift" Strategy (User Request)
+                # Goal: Maximize exposure while staying under 30% area limit.
+                
+                # A. Apply Base Rotation (Aligned)
+                base_angle = -delta_theta
+                
+                # B. Translation Jitter
+                # Step 1: Align Centers First (Base)
+                base_tx = target_anchor.centroid_global[0] - c_x_scaled
+                base_ty = target_anchor.centroid_global[1] - c_y_scaled
+                
+                # Step 2: Choose Random cardinal direction (0, 90, 180, 270) relative to card
+                # We move the CARD in this direction.
+                # Dimensions are scaled.
+                scaled_w = candidate_card.width * self.global_scale
+                scaled_h = candidate_card.height * self.global_scale
+                
+                shift_dir_idx = random.choice([0, 1, 2, 3]) # 0=Right, 1=Down, 2=Left, 3=Up (Local)
+                
+                # Distance to edge in that direction
+                if shift_dir_idx % 2 == 0: # Horizontal (Right/Left)
+                    dist_to_edge = scaled_w / 2.0
+                else: # Vertical (Down/Up)
+                    dist_to_edge = scaled_h / 2.0
+                    
+                # Step 3: Shift magnitude 0% to 30% of distance to edge
+                shift_pct = random.uniform(0.0, 0.30)
+                shift_dist = shift_pct * dist_to_edge
+                
+                # Calculate Local Shift Vector
+                # 0 deg = (1,0), 90 deg = (0,1), etc.
+                angles_rad = [0, np.pi/2, np.pi, 3*np.pi/2]
+                local_angle = angles_rad[shift_dir_idx]
+                
+                dx_local = shift_dist * np.cos(local_angle)
+                dy_local = shift_dist * np.sin(local_angle)
+                
+                # Rotate Local Shift Vector by the Card's Global Angle (base_angle)
+                # to get Global Shift Vector
+                # Note: 'base_angle' is the rotation APPLIED to the card.
+                # So Local (1,0) becomes Global (cos(theta), sin(theta))
+                
+                rad_base = np.radians(base_angle)
+                cos_b = np.cos(rad_base)
+                sin_b = np.sin(rad_base)
+                
+                dx_global = dx_local * cos_b - dy_local * sin_b
+                dy_global = dx_local * sin_b + dy_local * cos_b
+                
+                tx_jit = base_tx + dx_global
+                ty_jit = base_ty + dy_global
+                
+                # C. Rotation Jitter (Step 3: "Now perform angle rotation")
+                # Apply small jitter to the angle
+                rotation_jitter = random.uniform(-5.0, 5.0)
+                final_angle = base_angle + rotation_jitter
+                
+                # Re-calculate Rotation Matrix with final angle
                 M_rot_cand = cv2.getRotationMatrix2D(
                     (c_x_scaled, c_y_scaled), 
-                    -delta_theta, 1.0
+                    final_angle, 1.0
                 )
                 M_rot_cand_3x3 = np.eye(3)
                 M_rot_cand_3x3[:2, :] = M_rot_cand
                 
-                # 3. Translation
-                # Move the rotated, scaled centroid to the target global position
-                tx = target_anchor.centroid_global[0] - c_x_scaled
-                ty = target_anchor.centroid_global[1] - c_y_scaled
+                M_trans_cand = np.array([[1, 0, tx_jit], [0, 1, ty_jit], [0, 0, 1]], dtype=np.float64)
                 
-                # Note: M_rot does not move the center of rotation (it stays at c_scaled).
-                # So we just translate (c_scaled) to (target_global).
-                # But M_rot might add a translation component to keeping (c_scaled) fixed?
-                # Yes, cv2.getRotationMatrix2D(C, ..) -> R | T s.t. T = C - R*C
-                # So M_rot * C = R*C + C - R*C = C.
-                # So the point comes out at C_scaled. good.
-                
-                M_trans_cand = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float64)
-                
-                # 4. Global Scale Matrix
+                # 5. Global Scale Matrix
                 M_scale = np.diag([self.global_scale, self.global_scale, 1.0])
                 
-                # 5. Combine: Scale -> Rotate -> Translate
+                # 6. Combine: Scale -> Rotate -> Translate
                 M_final_cand = M_trans_cand @ M_rot_cand_3x3 @ M_scale
                 
                 new_pc = PlacedCard(candidate_card, M_final_cand, len(self.placed_cards))
@@ -201,6 +268,26 @@ class SynthesisEngine:
                 # Check if mostly on canvas
                 if not self._is_mostly_on_canvas(new_pc.polygon):
                     continue
+                
+                # COVERAGE CHECK: Ensure new card covers at least 70% of the target anchor
+                # (User Constraint: max 30% exposed area)
+                target_mask = target_anchor.mask_global
+                if not target_mask.is_valid: target_mask = target_mask.buffer(0)
+                
+                # Area of target anchor
+                tm_area = target_mask.area
+                if tm_area > 0:
+                     # Calculate intersection with new card
+                     if new_pc.polygon.intersects(target_mask):
+                         covered_area = new_pc.polygon.intersection(target_mask).area
+                         exposure_ratio = 1.0 - (covered_area / tm_area)
+                         
+                         if exposure_ratio > 0.30:
+                             # self._log(f"│   -> Rejected: Jitter exposed too much of anchor ({exposure_ratio:.1%})")
+                             continue
+                     else:
+                         # No intersection at all? Should be impossible with correct alignment, but reject
+                         continue
                 
                 # COLLISION DETECTION: Check if new card abnormally occludes existing anchors
                 # Rule: New card should ONLY occlude the target anchor, not other active anchors

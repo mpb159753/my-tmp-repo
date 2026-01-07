@@ -34,10 +34,11 @@ def get_score_value(label):
     return 0
 
 class Anchor:
-    def __init__(self, raw_label, points, width, height):
+    def __init__(self, raw_label, points, width, height, color_id=0):
         self.raw_label = raw_label
         self.canonical_type = get_canonical_type(raw_label)
         self.score_value = get_score_value(raw_label)
+        self.color_id = color_id
         self.points = np.array(points)
         self.mask = Polygon(points)
         self.width = width
@@ -194,11 +195,31 @@ class CardData:
         self.height = data.get("imageHeight")
         self.card_id = os.path.splitext(os.path.basename(json_path))[0]
         
+        # Parse color from filename
+        # Expected format: "blue_1_card_00" or "mirror_blue_1_card_00"
+        self.color = "unknown"
+        self.color_id = 0
+        
+        colors = ['red', 'blue', 'purple', 'green', 'yellow', 'pink']
+        filename_lower = self.card_id.lower()
+        
+        for idx, color_name in enumerate(colors):
+            if color_name in filename_lower:
+                self.color = color_name
+                self.color_id = idx
+                break
+        
+        if self.color == "unknown":
+            print(f"Warning: Could not parse color from {self.card_id}")
+            # Default to red if unknown to avoid crashes, but warn
+            self.color = "red" 
+            self.color_id = 0
+        
         self.anchors = []
         for shape in data.get("shapes", []):
             label = shape.get("label")
             if label in LABEL_MAP:
-                self.anchors.append(Anchor(label, shape.get("points"), self.width, self.height))
+                self.anchors.append(Anchor(label, shape.get("points"), self.width, self.height, self.color_id))
 
 def load_all_cards(directory):
     cards = []

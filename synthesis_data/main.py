@@ -43,11 +43,23 @@ CONFIG = {
     "CANDIDATE_PATH": None, # 默认使用 global loading，可指定特定目录
     
     # YOLO 类别映射
+    # YOLO 类别映射 (Color-Aware 24 Class Taxonomy)
+    # This is mainly for documentation here, the actual ID generation happens in renderer.py
+    # But we need this map to generate the dataset.yaml file later.
     "CLASS_MAP": {
-        1: 0,  # Triangle
-        2: 1,  # Square
-        3: 2,  # Rect Short
-        4: 3   # Rect Long
+        # Format: Color_Score (0-23)
+        # Red (0-3)
+        "Red_1": 0, "Red_2": 1, "Red_3": 2, "Red_4": 3,
+        # Blue (4-7)
+        "Blue_1": 4, "Blue_2": 5, "Blue_3": 6, "Blue_4": 7,
+        # Purple (8-11)
+        "Purple_1": 8, "Purple_2": 9, "Purple_3": 10, "Purple_4": 11,
+        # Green (12-15)
+        "Green_1": 12, "Green_2": 13, "Green_3": 14, "Green_4": 15,
+        # Yellow (16-19)
+        "Yellow_1": 16, "Yellow_2": 17, "Yellow_3": 18, "Yellow_4": 19,
+        # Pink (20-23)
+        "Pink_1": 20, "Pink_2": 21, "Pink_3": 22, "Pink_4": 23
     }
 }
 
@@ -56,6 +68,7 @@ import numpy as np
 from tqdm import tqdm
 import time
 import logging
+from engine import SynthesisEngine # Ensure updated engine is imported
 
 # Global context for worker processes
 worker_ctx = {}
@@ -113,7 +126,16 @@ def process_one_image(i):
         valid_gen = False
         
         while gen_attempts < 10 and not valid_gen:
-             n_cards = random.randint(min_c, max_c)
+             # Randomly select range based on weights:
+             # 20%: 10-30, 35%: 35-65, 45%: 65-99
+             r = random.random()
+             if r < 0.20:
+                 n_cards = random.randint(10, 30)
+             elif r < 0.55: # 0.20 + 0.35
+                 n_cards = random.randint(35, 65)
+             else:
+                 n_cards = random.randint(65, 99)
+                 
              # engine.generate usually respects min_cards if attempts limit allows
              placed_cards = engine.generate(min_cards=n_cards)
              
@@ -172,11 +194,22 @@ def main(user_config=None):
     # Merge user config with default
     config = CONFIG.copy()
     if user_config:
-        config.update(user_config)
-        if "COLLISION" in user_config: config["COLLISION"] = user_config["COLLISION"]
-        if "LIGHTING_DIST" in user_config: config["LIGHTING_DIST"] = user_config["LIGHTING_DIST"]
-        if "PERSPECTIVE_DIST" in user_config: config["PERSPECTIVE_DIST"] = user_config["PERSPECTIVE_DIST"]
-        if "DEBUG" in user_config: config["DEBUG"] = user_config["DEBUG"]
+        # Shallow update for top-level
+        for k, v in user_config.items():
+            if k in ["COLLISION", "LIGHTING_DIST", "PERSPECTIVE_DIST", "DEBUG", "CLASS_MAP"] and isinstance(v, dict):
+                 # Deep merge for dictionary fields
+                 config[k] = config.get(k, {}).copy()
+                 config[k].update(v)
+            else:
+                 config[k] = v
+
+    # Auto-adjust DEBUG settings for small batches (Verification Mode)
+    num_images = config["TOTAL_IMAGES"]
+    if num_images <= 200:
+        # If user didn't explicitly set interval, default to 1 (all images)
+        if "INTERVAL" not in config["DEBUG"]:
+            config["DEBUG"]["INTERVAL"] = 1
+        print(f"[Info] Small batch detected ({num_images} images). Setting Debug Interval to {config['DEBUG']['INTERVAL']}.")
 
     if not config.get("CANDIDATE_PATH"):
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -230,10 +263,9 @@ def main(user_config=None):
     # Use multiprocessing Pool
     # Determine workers
     use_parallel = config.get("USE_PARALLEL", True)
-    num_workers = mp.cpu_count()
-    if num_workers > 4:
-        num_workers -= 1
-        
+    # Use half of available cores as requested
+    num_workers = max(1, mp.cpu_count() // 2)
+    
     if use_parallel and num_workers > 1:
         print(f"Using Parallel Synthesis with {num_workers} cores.")
         with mp.Pool(processes=num_workers, initializer=init_worker, initargs=(config, cards, assets_dir, out_dirs)) as pool:
@@ -250,7 +282,22 @@ def main(user_config=None):
     success_count = sum(results)
     print(f"Done. Successfully generated {success_count}/{num_images} images.")
 
+import argparse
+import json
+
 if __name__ == "__main__":
     # Support spawn for consistency across platforms (optional but good for Mac)
     # mp.set_start_method('spawn') 
-    main()
+    
+    parser = argparse.ArgumentParser(description="Synthetic Data Generator")
+    parser.add_argument("--user_config", type=str, help="JSON string for configuration override")
+    args = parser.parse_args()
+    
+    u_config = None
+    if args.user_config:
+        try:
+            u_config = json.loads(args.user_config)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing user_config JSON: {e}")
+            
+    main(u_config)

@@ -200,6 +200,54 @@ class Renderer:
             canvas_int = canvas.astype(np.int16) + noise
             canvas = np.clip(canvas_int, 0, 255).astype(np.uint8)
         
+        # Apply Color Cast (White Balance Simulation)
+        canvas = self.apply_color_cast(canvas)
+        
+        return canvas
+
+    def apply_color_cast(self, canvas):
+        """
+        Simulate white balance errors / color casts.
+        Distribution:
+          - Neutral: 40%
+          - Warm (Yellow/Orange): 25%
+          - Cool (Blue): 20%
+          - Fluorescent (Green): 10%
+          - Magenta: 5%
+        """
+        r = np.random.random()
+        
+        if r < 0.40:
+            # Neutral - no cast
+            return canvas
+        elif r < 0.65:
+            # Warm: Boost R slightly, cut B
+            r_gain = np.random.uniform(1.05, 1.15)
+            g_gain = np.random.uniform(1.00, 1.05)
+            b_gain = np.random.uniform(0.85, 0.95)
+        elif r < 0.85:
+            # Cool: Boost B, cut R
+            r_gain = np.random.uniform(0.85, 0.95)
+            g_gain = np.random.uniform(0.95, 1.00)
+            b_gain = np.random.uniform(1.05, 1.15)
+        elif r < 0.95:
+            # Fluorescent: Green tint
+            r_gain = np.random.uniform(0.90, 1.00)
+            g_gain = np.random.uniform(1.05, 1.12)
+            b_gain = np.random.uniform(0.90, 1.00)
+        else:
+            # Magenta: Cut G
+            r_gain = np.random.uniform(1.00, 1.08)
+            g_gain = np.random.uniform(0.88, 0.95)
+            b_gain = np.random.uniform(1.00, 1.08)
+        
+        # Apply gains (OpenCV uses BGR order)
+        canvas_float = canvas.astype(np.float32)
+        canvas_float[:, :, 0] *= b_gain  # B
+        canvas_float[:, :, 1] *= g_gain  # G
+        canvas_float[:, :, 2] *= r_gain  # R
+        
+        canvas = np.clip(canvas_float, 0, 255).astype(np.uint8)
         return canvas
 
     def apply_perspective(self, canvas, placed_cards):
@@ -326,6 +374,10 @@ class Renderer:
         
         for i, pc in enumerate(placed_cards):
             for anchor in pc.anchors:
+                # 1. Skip if anchor is used for connection (logically hidden/occupied)
+                if hasattr(anchor, 'is_occupied') and anchor.is_occupied:
+                    continue
+
                 if anchor.original.score_value == 0:
                     continue
                 
@@ -335,9 +387,15 @@ class Renderer:
                 original_area = poly.area
                 if original_area <= 0: continue
                 
-                # Visible part
+                # Visible part (intersection with canvas)
                 visible_poly = poly.intersection(canvas_poly)
                 if visible_poly.is_empty: continue
+                
+                # EDGE CLIPPING CHECK:
+                # If significant portion is lost just by canvas intersection (e.g. < 98% inside),
+                # it means the pattern is cut by the edge. Skip it.
+                if visible_poly.area / original_area < 0.98:
+                    continue
                     
                 # Subtract upper layers
                 for j in range(i + 1, len(placed_cards)):
@@ -370,7 +428,14 @@ class Renderer:
                     # Flatten
                     flat_coords = coords.flatten()
                     
-                    class_id = self.class_map.get(anchor.original.score_value, 0)
+                    color_id = anchor.original.color_id if hasattr(anchor.original, 'color_id') else 0
+                    score_val = anchor.original.score_value
+                    
+                    # Safety clamp
+                    if score_val < 1: score_val = 1
+                    if score_val > 4: score_val = 4
+                    
+                    class_id = color_id * 4 + (score_val - 1)
                     
                     # Format: class x1 y1 x2 y2 ...
                     coords_str = " ".join([f"{c:.6f}" for c in flat_coords])
