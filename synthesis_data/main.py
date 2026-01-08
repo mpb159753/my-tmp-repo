@@ -33,6 +33,13 @@ CONFIG = {
         "NORMAL": 0.50, # 10-15%
         "HEAVY": 0.30   # 20-35%
     },
+    "COLOR_BIAS_DIST": {
+        "NEUTRAL": 0.40,
+        "WARM": 0.25,
+        "COOL": 0.20,
+        "FLUORESCENT": 0.10,
+        "MAGENTA": 0.05
+    },
     
     # 调试选项
     "DEBUG": {
@@ -159,7 +166,14 @@ def process_one_image(i):
         # 2. Lighting Augmentation
         canvas = renderer.augment_lighting(canvas, lighting_level=lighting_level)
         
-        # 3. Perspective
+        # 3. Color Bias (Orthogonal Sampling)
+        color_bias_dist = cfg.get("COLOR_BIAS_DIST", {"NEUTRAL": 1.0})
+        color_bias_modes = list(color_bias_dist.keys())
+        color_bias_probs = list(color_bias_dist.values())
+        color_bias_mode = np.random.choice(color_bias_modes, p=color_bias_probs)
+        canvas = renderer.apply_color_cast(canvas, color_bias_mode)
+        
+        # 4. Perspective
         canvas, valid_poly = renderer.apply_perspective(canvas, placed_cards)
         
         # Save final image
@@ -196,10 +210,13 @@ def main(user_config=None):
     if user_config:
         # Shallow update for top-level
         for k, v in user_config.items():
-            if k in ["COLLISION", "LIGHTING_DIST", "PERSPECTIVE_DIST", "DEBUG", "CLASS_MAP"] and isinstance(v, dict):
-                 # Deep merge for dictionary fields
+            if k in ["COLLISION", "DEBUG", "CLASS_MAP"] and isinstance(v, dict):
+                 # Deep merge for dictionary fields (these benefit from partial overrides)
                  config[k] = config.get(k, {}).copy()
                  config[k].update(v)
+            elif k in ["LIGHTING_DIST", "PERSPECTIVE_DIST"] and isinstance(v, dict):
+                 # REPLACE distribution dicts entirely (probabilities must sum to 1)
+                 config[k] = v
             else:
                  config[k] = v
 

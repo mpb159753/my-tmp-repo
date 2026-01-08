@@ -200,46 +200,40 @@ class Renderer:
             canvas_int = canvas.astype(np.int16) + noise
             canvas = np.clip(canvas_int, 0, 255).astype(np.uint8)
         
-        # Apply Color Cast (White Balance Simulation)
-        canvas = self.apply_color_cast(canvas)
-        
+        # Note: Color cast is now applied separately in main.py pipeline
         return canvas
 
-    def apply_color_cast(self, canvas):
+    def apply_color_cast(self, canvas, mode="NEUTRAL"):
         """
         Simulate white balance errors / color casts.
-        Distribution:
-          - Neutral: 40%
-          - Warm (Yellow/Orange): 25%
-          - Cool (Blue): 20%
-          - Fluorescent (Green): 10%
-          - Magenta: 5%
+        Modes: NEUTRAL, WARM, COOL, FLUORESCENT, MAGENTA
         """
-        r = np.random.random()
-        
-        if r < 0.40:
+        if mode == "NEUTRAL":
             # Neutral - no cast
             return canvas
-        elif r < 0.65:
+        elif mode == "WARM":
             # Warm: Boost R slightly, cut B
             r_gain = np.random.uniform(1.05, 1.15)
             g_gain = np.random.uniform(1.00, 1.05)
             b_gain = np.random.uniform(0.85, 0.95)
-        elif r < 0.85:
+        elif mode == "COOL":
             # Cool: Boost B, cut R
             r_gain = np.random.uniform(0.85, 0.95)
             g_gain = np.random.uniform(0.95, 1.00)
             b_gain = np.random.uniform(1.05, 1.15)
-        elif r < 0.95:
+        elif mode == "FLUORESCENT":
             # Fluorescent: Green tint
             r_gain = np.random.uniform(0.90, 1.00)
             g_gain = np.random.uniform(1.05, 1.12)
             b_gain = np.random.uniform(0.90, 1.00)
-        else:
+        elif mode == "MAGENTA":
             # Magenta: Cut G
             r_gain = np.random.uniform(1.00, 1.08)
             g_gain = np.random.uniform(0.88, 0.95)
             b_gain = np.random.uniform(1.00, 1.08)
+        else:
+            # Unknown mode, return unchanged
+            return canvas
         
         # Apply gains (OpenCV uses BGR order)
         canvas_float = canvas.astype(np.float32)
