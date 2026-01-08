@@ -77,7 +77,10 @@ if __name__ == "__main__":
     parser.add_argument("--workers", type=int, default=8, help="Dataloader workers")
     parser.add_argument("--cache", type=str, default="False", help="Cache images (False/ram/disk)")
     parser.add_argument("--save-period", type=int, default=5, help="Save checkpoint every X epochs")
-    parser.add_argument("--project", type=str, default="/Users/mpb/WorkSpace/local_job/train/runs", help="Project name")
+    # Use path relative to this script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    default_project = os.path.join(script_dir, "runs")
+    parser.add_argument("--project", type=str, default=default_project, help="Project name")
     parser.add_argument("--base_name", type=str, default="tacta_v3", help="Base experiment name prefix")
     
     args = parser.parse_args()

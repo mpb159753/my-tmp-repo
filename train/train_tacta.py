@@ -49,9 +49,14 @@ def main(args):
     print(f"Model exported to: {path}")
 
 if __name__ == "__main__":
+    # Use paths relative to this script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    default_data = os.path.join(script_dir, "tacta.yaml")
+    default_project = os.path.join(script_dir, "runs")
+    
     parser = argparse.ArgumentParser(description="Train YOLO11-m for Tacta Board Game")
     parser.add_argument("--model", type=str, default="yolo11m.pt", help="Base model path")
-    parser.add_argument("--data", type=str, default="/Users/mpb/WorkSpace/local_job/train/tacta.yaml", help="Data config path")
+    parser.add_argument("--data", type=str, default=default_data, help="Data config path")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs")
     parser.add_argument("--imgsz", type=int, default=640, help="Image size")
     parser.add_argument("--batch", type=int, default=16, help="Batch size (Approx 16-32 for 16GB RAM M4)")
@@ -60,7 +65,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache", type=str, default="False", help="Cache images (False/ram/disk). Use False for low RAM.")
     parser.add_argument("--save-period", type=int, default=1, help="Save checkpoint every X epochs")
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
-    parser.add_argument("--project", type=str, default="/Users/mpb/WorkSpace/local_job/train/runs", help="Project name")
+    parser.add_argument("--project", type=str, default=default_project, help="Project name")
     parser.add_argument("--name", type=str, default="tacta_v1", help="Experiment name")
     
     args = parser.parse_args()
