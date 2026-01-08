@@ -1,7 +1,19 @@
+# Standard library imports
+import argparse
+import json
+import logging
+import multiprocessing as mp
 import os
 import random
+import time
+import traceback
+
+# Third-party imports
 import cv2
-import logging
+import numpy as np
+from tqdm import tqdm
+
+# Local imports
 from data_utils import load_all_cards
 from engine import SynthesisEngine
 from renderer import Renderer
@@ -70,13 +82,6 @@ CONFIG = {
     }
 }
 
-import multiprocessing as mp
-import numpy as np
-from tqdm import tqdm
-import time
-import logging
-from engine import SynthesisEngine # Ensure updated engine is imported
-
 # Global context for worker processes
 worker_ctx = {}
 
@@ -123,7 +128,6 @@ def process_one_image(i):
     img_dir, lbl_dir, log_dir, debug_dir = worker_ctx['dirs']
     
     min_c = cfg["MIN_CARDS"]
-    max_c = cfg["MAX_CARDS"]
     
     try:
         # Generate stacking
@@ -200,7 +204,6 @@ def process_one_image(i):
         return True
     except Exception as e:
         print(f"Error generating image {i}: {e}")
-        import traceback
         traceback.print_exc()
         return False
 
@@ -298,9 +301,6 @@ def main(user_config=None):
     
     success_count = sum(results)
     print(f"Done. Successfully generated {success_count}/{num_images} images.")
-
-import argparse
-import json
 
 if __name__ == "__main__":
     # Support spawn for consistency across platforms (optional but good for Mac)

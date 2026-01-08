@@ -439,22 +439,6 @@ class Renderer:
             f.write("\n".join(labels))
         return labels
 
-    def render_debug(self, placed_cards, assets_dir, output_img_path, labels_path=None):
-        """
-        Render debug image with YOLO labels overlaid.
-        """
-        # NOTE: render_debug needs to use the FINAL transformed image, not re-render from scratch.
-        # But our current flow separates rendering and logic. 
-        # Ideally, we should pass the final canvas to this.
-        # For now, to support the separate calls in main.py, we might have an issue
-        # because `render()` creates a FRESH canvas without perspective.
-        
-        # Hack solution: If perspective was applied, `placed_cards` geometry is already distorted.
-        # But `render()` will draw them flat. This will cause mismatch in debug view.
-        #
-        # CORRECT FIX: Main loop should pass the final image to render_debug.
-        # I'll update render_debug to accept an optional 'canvas' argument.
-        pass
 
     def render_debug_v2(self, canvas, labels_path, output_img_path):
         """
@@ -507,59 +491,3 @@ class Renderer:
 
         cv2.imwrite(output_img_path, debug_canvas)
         return debug_canvas
-
-
-    def render_debug(self, placed_cards, assets_dir, output_img_path, labels_path=None):
-        """
-        Render debug image with YOLO labels overlaid.
-        """
-        # First render the base image as usual
-        canvas = self.render(placed_cards, assets_dir, output_img_path)
-        
-        # Parse labels
-        labels = []
-        if labels_path and os.path.exists(labels_path):
-            with open(labels_path, 'r') as f:
-                for line in f:
-                    parts = line.strip().split()
-                    if len(parts) >= 5:
-                        class_id = int(parts[0])
-                        xc = float(parts[1])
-                        yc = float(parts[2])
-                        w = float(parts[3])
-                        h = float(parts[4])
-                        labels.append((class_id, xc, yc, w, h))
-        else:
-             # Or generate them on the fly if not passed? 
-             # For now assume they are passed or re-generated.
-             # Actually simplest is to regenerate or use what we derived.
-             temp_labels = self.save_yolo_labels(placed_cards, "/dev/null") # Quick re-calc
-             for l in temp_labels:
-                 parts = l.split()
-                 labels.append((int(parts[0]), float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4])))
-
-        h_img, w_img = canvas.shape[:2]
-        
-        # Draw boxes
-        for class_id, xc, yc, w, h in labels:
-            x1 = int((xc - w/2) * w_img)
-            y1 = int((yc - h/2) * h_img)
-            x2 = int((xc + w/2) * w_img)
-            y2 = int((yc + h/2) * h_img)
-            
-            color = (0, 255, 0) # Green default
-            if class_id == 0: color = (100, 100, 255) # Red-ish
-            elif class_id == 1: color = (255, 100, 100) # Blue-ish
-            elif class_id == 2: color = (255, 255, 100) # Cyan-ish
-            elif class_id == 3: color = (100, 255, 255) # Yellow-ish
-
-            cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-            
-            # Draw label background
-            label_text = f"ID: {class_id}"
-            (tw, th), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-            cv2.rectangle(canvas, (x1, y1 - 20), (x1 + tw + 10, y1), color, -1)
-            cv2.putText(canvas, label_text, (x1 + 5, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-
-        cv2.imwrite(output_img_path, canvas)
-        return canvas

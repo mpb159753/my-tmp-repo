@@ -1,6 +1,6 @@
-import os
 import glob
-import random
+import os
+
 
 def prepare_splits():
     # Base paths

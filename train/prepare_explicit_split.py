@@ -1,22 +1,17 @@
-import os
 import glob
+import os
 
 # Config
-# Config
-# Dynamic path calculation based on script location (assumed to be in PROJECT_ROOT/train)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(BASE_DIR)
-
-TRAIN_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset")
-VAL_ROOT = os.path.join(PROJECT_ROOT, "synthesis_data", "dataset_val")
-OUTPUT_DIR = BASE_DIR
+TRAIN_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset"
+VAL_ROOT = "/Users/mpb/WorkSpace/local_job/synthesis_data/dataset_val"
+OUTPUT_DIR = "/Users/mpb/WorkSpace/local_job/train"
 
 def get_images(root):
     if not os.path.exists(root):
         return []
     files = glob.glob(os.path.join(root, "images", "*.jpg"))
     files.extend(glob.glob(os.path.join(root, "images", "*.png")))
-    return sorted(files) # Sort for consistency
+    return sorted(files)  # Sort for consistency
 
 def main():
     print("Preparing explicit train/val lists...")
@@ -34,9 +29,7 @@ def main():
         print(f"WARNING: No validation images found in {VAL_ROOT}")
     else:
         print(f"Found {len(val_files)} validation images.")
-        
-    print(f"Found {len(val_files)} validation images.")
-        
+
     # Write full lists
     with open(os.path.join(OUTPUT_DIR, "train_full.txt"), "w") as f:
         f.write("\n".join(train_files))

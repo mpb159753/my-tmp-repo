@@ -1,4 +1,4 @@
-# Tacta Board Game Scoring Dataset Configuration
+# Tacta Board Game Scoring Dataset Configuration (24-Class Taxonomy)
 
 # Path calculated at runtime (txt files contain absolute paths)
 # path: . 
@@ -7,9 +7,29 @@
 train: train_full.txt
 val: val_full.txt
 
-# Class names
+# 24 Class names (6 colors x 4 scores)
 names:
-  0: Score_1
-  1: Score_2
-  2: Score_3
-  3: Score_4
+  0: Red_1
+  1: Red_2
+  2: Red_3
+  3: Red_4
+  4: Blue_1
+  5: Blue_2
+  6: Blue_3
+  7: Blue_4
+  8: Purple_1
+  9: Purple_2
+  10: Purple_3
+  11: Purple_4
+  12: Green_1
+  13: Green_2
+  14: Green_3
+  15: Green_4
+  16: Yellow_1
+  17: Yellow_2
+  18: Yellow_3
+  19: Yellow_4
+  20: Pink_1
+  21: Pink_2
+  22: Pink_3
+  23: Pink_4

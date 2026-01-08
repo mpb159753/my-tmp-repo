@@ -1,8 +1,14 @@
-import numpy as np
-import random
+# Standard library imports
 import logging
-from shapely.geometry import Polygon, MultiPolygon
+import random
+
+# Third-party imports
+import cv2
+import numpy as np
 from shapely.affinity import rotate, translate
+from shapely.geometry import MultiPolygon, Polygon
+
+# Local imports
 from data_utils import TYPE_TRIANGLE, TYPE_SQUARE, TYPE_RECT_LONG, TYPE_RECT_SHORT
 
 # Set up logging
@@ -425,5 +431,3 @@ class SynthesisEngine:
     def save_logs(self, filepath):
         with open(filepath, 'w') as f:
             f.write('\n'.join(self.logs))
-
-import cv2 # Required for getRotationMatrix2D
