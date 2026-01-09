@@ -27,7 +27,7 @@ def main():
             # Structure: runs/tacta_m4_v3_yolo11n/weights/best.py
             # Parent of weights is the run name
             parent_dir = os.path.dirname(root) # .../weights
-            run_name = os.path.basename(os.path.dirname(parent_dir)) # run_folder_name
+            run_name = os.path.basename(parent_dir) # run_folder_name
             
             output_name = f"{run_name}.onnx"
             output_path = os.path.join(args.output_dir, output_name)
@@ -39,7 +39,7 @@ def main():
                 model = YOLO(weight_path)
                 # Export
                 # Note: model.export saves to the SAME directory as the pt file by default
-                exported_path = model.export(format="onnx", opset=12, dynamic=False)
+                exported_path = model.export(format="onnx", opset=12, dynamic=False, half=True)
                 
                 # Move to target dir
                 if exported_path and os.path.exists(exported_path):
