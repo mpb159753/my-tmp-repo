@@ -38,9 +38,9 @@ def main(args):
                 save_period=args.save_period,
                 
                 # Augmentation Settings (Optimized for Synthetic Data)
-                mosaic=0.0,       # Disabled for synthetic data
+                mosaic=0.5,       # Enabled: Helps with small object detection and context
                 degrees=0.0,      # Disabled: Synthetic data already covers rotation
-                scale=0.0,        # Disabled: Prevent shrinking which loses detail on small anchors
+                scale=0.5,        # Enabled: Essential for dealing with varying object sizes (missing link for full image inference)
                 hsv_h=0.05,       # Increased HSV variance
                 hsv_s=0.7,        # default 0.7
                 hsv_v=0.5,        # Increased from 0.4
@@ -71,8 +71,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train YOLO11 variants for Tacta")
     parser.add_argument("--data", type=str, default="tacta.yaml", help="Data config path")
     parser.add_argument("--epochs", type=int, default=20, help="Number of epochs (default 20)")
-    parser.add_argument("--imgsz", type=int, default=1024, help="Image size (default 1024)")
-    parser.add_argument("--batch", type=int, default=32, help="Batch size (default 32)")
+    parser.add_argument("--imgsz", type=int, default=2048, help="Image size (default 2048)")
+    parser.add_argument("--batch", type=int, default=16, help="Batch size (default 16)")
     parser.add_argument("--device", type=str, default="0", help="Device (cpu, mps, cuda, 0, npu:0)") 
     parser.add_argument("--workers", type=int, default=8, help="Dataloader workers")
     parser.add_argument("--cache", type=str, default="False", help="Cache images (False/ram/disk)")

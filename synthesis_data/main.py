@@ -142,10 +142,22 @@ def process_one_image(i):
              r = random.random()
              if r < 0.20:
                  n_cards = random.randint(10, 30)
+                 # Fewer cards -> Can be larger (0.4 ~ 0.55)
+                 current_scale = random.uniform(0.4, 0.55)
              elif r < 0.55: # 0.20 + 0.35
                  n_cards = random.randint(35, 65)
+                 # Medium cards -> Standard scale (0.35 ~ 0.45)
+                 current_scale = random.uniform(0.35, 0.45)
              else:
                  n_cards = random.randint(65, 99)
+                 # Lots of cards -> Smaller scale to fit (0.32 ~ 0.38)
+                 current_scale = random.uniform(0.32, 0.38)
+             
+             # Re-init engine or update scale per image?
+             # Engine was init with config["COLLISION"].
+             # We need to hack/update the engine's internal scale for this generation.
+             # SynthesisEngine stores collision_config. Let's update it.
+             engine.collision_config["GLOBAL_SCALE"] = current_scale
                  
              # engine.generate usually respects min_cards if attempts limit allows
              placed_cards = engine.generate(min_cards=n_cards)
