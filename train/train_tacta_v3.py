@@ -21,8 +21,19 @@ def main(args):
         print(f"{'='*50}\n")
         
         try:
-            # 1. Load the model
-            model = YOLO(base_model)
+            # 1. Load the model logic
+            resume_run = False
+            if args.resume:
+                last_ckpt = os.path.join(args.project, run_name, "weights", "last.pt")
+                if os.path.exists(last_ckpt):
+                    print(f"Resuming {run_name} from {last_ckpt}")
+                    model = YOLO(last_ckpt)
+                    resume_run = True
+                else:
+                    print(f"Resume requested but no checkpoint found for {run_name}. Starting fresh.")
+                    model = YOLO(base_model)
+            else:
+                model = YOLO(base_model)
 
             # 2. Train
             results = model.train(
@@ -48,7 +59,9 @@ def main(args):
                 # Other settings
                 exist_ok=True,    # Overwrite existing experiment folder
                 patience=5,       # Aggressive early stopping
+                patience=5,       # Aggressive early stopping
                 save=True,        # Ensure best/last are saved
+                resume=resume_run,
             )
             
             # 3. Export
@@ -76,7 +89,8 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=str, default="0", help="Device (cpu, mps, cuda, 0, npu:0)") 
     parser.add_argument("--workers", type=int, default=8, help="Dataloader workers")
     parser.add_argument("--cache", type=str, default="False", help="Cache images (False/ram/disk)")
-    parser.add_argument("--save-period", type=int, default=5, help="Save checkpoint every X epochs")
+    parser.add_argument("--save-period", type=int, default=1, help="Save checkpoint every X epochs")
+    parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
     # Use path relative to this script's directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     default_project = os.path.join(script_dir, "runs")
